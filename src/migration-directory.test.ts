@@ -5,7 +5,7 @@ import sinon from "npm:sinon";
 import { faker } from "https://deno.land/x/deno_faker@v1.0.3/mod.ts";
 
 
-import { MigrationLoader } from "./migration-loader.ts";
+import { MigrationDirectory } from "./migration-directory.ts";
 
 
 function createMockMigrationDirEntries(index: number) {
@@ -41,11 +41,11 @@ function createMockFS() {
 }
 
 
-describe("MigrationLoader", () => {
+describe("MigrationDirectory", () => {
   it("can be instantiated", () => {
     const fs = createMockFS();
 
-    new MigrationLoader(faker.system.directoryPath(), fs);
+    new MigrationDirectory(faker.system.directoryPath(), fs);
     sinon.assert.pass();
   });
 
@@ -53,7 +53,7 @@ describe("MigrationLoader", () => {
     const fs = createMockFS();
     const mockPath = faker.system.directoryPath();
 
-    const loader = new MigrationLoader(mockPath, fs);
+    const loader = new MigrationDirectory(mockPath, fs);
     await loader.scan();
 
     sinon.assert.calledOnce(fs.readDir);

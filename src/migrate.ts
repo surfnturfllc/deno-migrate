@@ -1,33 +1,67 @@
 import * as postgres from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
-import { MigrationLoader } from "./migration-loader.ts";
+import * as prompt from "https://raw.githubusercontent.com/surfnturfllc/deno-cli/main/src/prompt.ts";
+
+import { MigrationDirectory } from "./migration-directory.ts";
 import { Migrator } from "./migrator.ts";
+import { Database } from "./database.ts";
+import { Migration } from "./migration.ts";
 
 
-async function getDatabaseVersion(client: Client): Promise<number> {
-  const { rows } = await client.queryObject<{ index: number }>(
-    "SELECT index FROM _migrations ORDER BY index DESC LIMIT 1",
-  );
-  return rows[0].index;
+export const _deps = {
+  console: {
+    log: console.log,
+  },
+  env: {
+    get: Deno.env.get,
+  },
+  prompt: {
+    password: prompt.password,
+  },
+  postgres: {
+    Client: postgres.Client,
+  },
+  MigrationDirectory,
+  Migrator,
+  Database,
+};
+
+
+export async function migrate(client: Client, migrations: Migration[]) {
+  const migrator = new _deps.Migrator(migrations);
+  await migrator.migrate(client);
 }
 
-const path = "./schema";
 
-const loader = new MigrationLoader(path);
-await loader.scan();
+export async function command(path = "./schema") {
+  const DATABASE_NAME = _deps.env.get("MIGRATE_DATABASE") ?? "postgres";
+  const DATABASE_HOST = _deps.env.get("MIGRATE_DATABASE_HOST") ?? "localhost";
+  const DATABASE_PORT = _deps.env.get("MIGRATE_DATABASE_PORT") ?? "5432";
+  const DATABASE_USER = _deps.env.get("MIGRATE_DATABASE_USER") ?? "postgres";
 
-const client = new postgres.Client({
-  database: "",
-  hostname: "",
-  port: 5432,
-  user: "",
-  password: "",
-});
+  _deps.console.log(`Connecting to ${DATABASE_NAME} at ${DATABASE_HOST}:${DATABASE_PORT} with user ${DATABASE_USER}...`);
+  const DATABASE_PASSWORD = await _deps.prompt.password(`Password: `);
 
-const databaseVersion = await getDatabaseVersion(client);
+  const client = new _deps.postgres.Client({
+    database: DATABASE_NAME,
+    hostname: DATABASE_HOST,
+    port: DATABASE_PORT,
+    user: DATABASE_USER,
+    password: DATABASE_PASSWORD,
+  });
 
-const migrations = await loader.load(databaseVersion);
+  const db = new _deps.Database();
+  const databaseVersion = await db.fetchVersion(client);
 
-const migrator = new Migrator(migrations);
+  _deps.console.log(`Loading database migrations from "${path}"...`);
 
-await migrator.migrate(client);
+  const directory = new _deps.MigrationDirectory(path);
+  await directory.scan();
+
+  return migrate(client, await directory.load(databaseVersion));
+}
+
+
+if (import.meta.main) {
+  await command();
+}

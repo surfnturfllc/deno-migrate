@@ -71,7 +71,7 @@ interface MigrationPair {
 }
 
 
-export class MigrationLoader {
+export class MigrationDirectory {
   private fs: FileSystem;
 
   private path: string;
