@@ -1,6 +1,13 @@
 /// <reference types="./types.d.ts" />
 
 
+export const _deps = {
+  console: {
+    error: console.error,
+  },
+};
+
+
 export class QueryMigration implements Migration {
   private _index: number;
   private queries: { migrate: string, revert: string };
@@ -19,7 +26,7 @@ export class QueryMigration implements Migration {
       await db.end();
     } catch (e) {
       if (e) {
-        console.error(e);
+        _deps.console.error(e);
       }
       throw e;
     }
@@ -32,7 +39,7 @@ export class QueryMigration implements Migration {
       await db.end();
     } catch (e) {
       if (e) {
-        console.error(e);
+        _deps.console.error(e);
       }
     }
   }
