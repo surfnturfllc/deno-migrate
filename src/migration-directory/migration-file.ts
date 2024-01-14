@@ -1,8 +1,5 @@
-export const _deps = {
-  fs: {
-    readTextFile: Deno.readTextFile,
-  },
-};
+import { deps } from "./deps.ts";
+
 
 export class MigrationFile {
   static pattern = /^(\d+)-(up|down)-(.*)\.sql$/;
@@ -30,6 +27,6 @@ export class MigrationFile {
   get name() { return this._name }
 
   load(): Promise<string> {
-    return _deps.fs.readTextFile(this.filename);
+    return deps.fs.readTextFile(this.filename);
   }
 }

@@ -5,67 +5,68 @@ import { assertRejects } from "https://deno.land/std@0.160.0/testing/asserts.ts"
 import sinon from "npm:sinon";
 import { faker } from "https://deno.land/x/deno_faker@v1.0.3/mod.ts";
 
-import { _deps, MigrationDirectory } from "./migration-directory.ts";
+import { deps } from "./deps.ts";
+import { MigrationDirectory } from "./migration-directory.ts";
 
 
 describe("MigrationDirectory", () => {
   const path = faker.system.directoryPath();
 
   beforeEach(() => {
-    sinon.stub(_deps.console, "error");
-    sinon.stub(_deps.fs, "readTextFile").returns(faker.lorem.paragraph());
+    sinon.stub(deps.console, "error");
+    sinon.stub(deps.fs, "readTextFile").returns(faker.lorem.paragraph());
   });
 
   afterEach(sinon.restore);
 
   it("can be instantiated", () => {
-    sinon.stub(_deps.fs, "readDir").returns(generateFakeReadDir());
+    sinon.stub(deps.fs, "readDir").returns(generateFakeReadDir());
 
     new MigrationDirectory(path);
   });
 
   describe("MigrationDirectory.prototype.scan", () => {
     it("can scan a directory for migrations", async () => {
-      sinon.stub(_deps.fs, "readDir").returns(generateFakeReadDir());
+      sinon.stub(deps.fs, "readDir").returns(generateFakeReadDir());
 
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      sinon.assert.calledOnce(_deps.fs.readDir);
-      sinon.assert.calledWith(_deps.fs.readDir, path);
+      sinon.assert.calledOnce(deps.fs.readDir);
+      sinon.assert.calledWith(deps.fs.readDir, path);
     });
 
     it("ignores non-files", async () => {
-      sinon.stub(_deps.fs, "readDir").returns(
+      sinon.stub(deps.fs, "readDir").returns(
         generateFakeReadDir().concat({ isFile: false, name: "foobar" }),
       );
 
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      sinon.assert.notCalled(_deps.console.error);
+      sinon.assert.notCalled(deps.console.error);
     });
 
     it("prints an error message if it encounters an unparsable file name", async () => {
-      sinon.stub(_deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
+      sinon.stub(deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
 
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      sinon.assert.called(_deps.console.error);
+      sinon.assert.called(deps.console.error);
     });
 
     it("prints an error message if it encounters an unparsable file name", async () => {
-      sinon.stub(_deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
+      sinon.stub(deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
 
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      sinon.assert.called(_deps.console.error);
+      sinon.assert.called(deps.console.error);
     });
 
     it("throws an error if it encounters an up migration without a down", () => {
-      sinon.stub(_deps.fs, "readDir").returns([{ isFile: true, name: "01-up-foobar.sql" }]);
+      sinon.stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-up-foobar.sql" }]);
 
       const directory = new MigrationDirectory(path);
 
@@ -73,7 +74,7 @@ describe("MigrationDirectory", () => {
     });
 
     it("throws an error if it encounters a down migration without an up", () => {
-      sinon.stub(_deps.fs, "readDir").returns([{ isFile: true, name: "01-down-foobar.sql" }]);
+      sinon.stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-down-foobar.sql" }]);
 
       const directory = new MigrationDirectory(path);
 
