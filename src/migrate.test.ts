@@ -8,7 +8,7 @@ import {
 import sinon from "npm:sinon";
 
 
-import { MockMigrationDirectory } from "./migration-directory.mock.ts";
+import { MockMigrationDirectory } from "./migration-directory/testing.ts";
 import { MockMigrator } from "./migrator.mock.ts";
 import { MockDatabase } from "./database.mock.ts";
 

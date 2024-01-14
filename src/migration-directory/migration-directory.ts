@@ -1,4 +1,5 @@
-import { QueryMigration } from "./query-migration.ts";
+import { QueryMigration } from "../query-migration.ts";
+
 
 export const _deps = {
   console: {
@@ -13,7 +14,7 @@ export const _deps = {
 
 export class MigrationDirectory {
   private path: string;
-  private migrationPairs: MigrationPair[];
+  private migrationPairs: MigrationFilePair[];
 
   constructor(path: string) {
     this.path = path;
@@ -21,7 +22,7 @@ export class MigrationDirectory {
   }
 
   async scan(): Promise<void> {
-    const incompletePairs: { [index: string]: IncompleteMigrationPair } = {};
+    const incompletePairs: { [index: string]: IncompleteMigrationFilePair } = {};
 
     for await (const entry of _deps.fs.readDir(this.path)) {
       if (!entry.isFile) continue;
@@ -31,7 +32,7 @@ export class MigrationDirectory {
         const { index, direction } = migrationFile;
 
         if (!incompletePairs[index]) {
-          incompletePairs[index] = new IncompleteMigrationPair();
+          incompletePairs[index] = new IncompleteMigrationFilePair();
         }
 
         incompletePairs[index].add(direction, migrationFile);
@@ -45,7 +46,7 @@ export class MigrationDirectory {
       (pair) => pair.complete(),
     );
 
-    this.migrationPairs.sort(MigrationPair.compare);
+    this.migrationPairs.sort(MigrationFilePair.compare);
   }
 
   async load(from = 0, to?: number): Promise<Migration[]> {
@@ -105,7 +106,7 @@ class MigrationFile {
 }
 
 
-class IncompleteMigrationPair {
+class IncompleteMigrationFilePair {
   private _up?: MigrationFile;
   private _down?: MigrationFile;
 
@@ -124,7 +125,7 @@ class IncompleteMigrationPair {
       throw new Error("Unable to complete migration pair.");
     }
 
-    return new MigrationPair(this._up, this._down);
+    return new MigrationFilePair(this._up, this._down);
   }
 
   get up() { return this._up }
@@ -132,11 +133,11 @@ class IncompleteMigrationPair {
 }
 
 
-class MigrationPair {
+class MigrationFilePair {
   up: MigrationFile;
   down: MigrationFile;
 
-  static compare(a: MigrationPair, b: MigrationPair) {
+  static compare(a: MigrationFilePair, b: MigrationFilePair) {
     if (a.up.index < b.up.index) return -1;
     if (a.up.index > b.up.index) return 1;
     return 0;

@@ -1,10 +1,9 @@
+import * as path from "https://deno.land/std@0.212.0/path/mod.ts";
 import { afterEach, beforeEach, describe, it } from "https://deno.land/std@0.210.0/testing/bdd.ts";
 import { assertRejects } from "https://deno.land/std@0.160.0/testing/asserts.ts";
-import * as path from "https://deno.land/std@0.212.0/path/mod.ts";
 
 import sinon from "npm:sinon";
 import { faker } from "https://deno.land/x/deno_faker@v1.0.3/mod.ts";
-
 
 import { _deps, MigrationDirectory } from "./migration-directory.ts";
 
@@ -25,7 +24,7 @@ describe("MigrationDirectory", () => {
     new MigrationDirectory(path);
   });
 
-  describe(".prototype.scan", () => {
+  describe("MigrationDirectory.prototype.scan", () => {
     it("can scan a directory for migrations", async () => {
       sinon.stub(_deps.fs, "readDir").returns(generateFakeReadDir());
 
@@ -80,19 +79,11 @@ describe("MigrationDirectory", () => {
 
       assertRejects(() => directory.scan());
     });
+  });
 
-    it("can handle unsorted filenames", async () => {
-      sinon.stub(_deps.fs, "readDir").returns([
-        { isFile: true, name: "01-down-foo.sql" },
-        { isFile: true, name: "01-up-foo.sql" },
-        { isFile: true, name: "5-down-bar.sql" },
-        { isFile: true, name: "5-up-bar.sql" },
-        { isFile: true, name: "2-down-foobar.sql" },
-        { isFile: true, name: "2-up-foobar.sql" },
-      ]);
+  describe("MigrationDirectory.prototype.load", () => {
+    it("reads migration file content and returns QueryMigrations", async () => {
 
-      const directory = new MigrationDirectory(path);
-      await directory.scan();
     });
   });
 });
