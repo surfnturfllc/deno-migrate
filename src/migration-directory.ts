@@ -11,60 +11,6 @@ export const _deps = {
 };
 
 
-const migrationFilePattern = /^(\d+)-(up|down)-(.*)\.sql$/;
-
-class MigrationFile {
-  private _filename: string;
-  private _index: number;
-  private _direction: string;
-  private _name: string;
-
-  constructor(filename: string) {
-    const match = migrationFilePattern.exec(filename);
-    if (!match) {
-      throw new Error(`Unable to parse filename: ${filename}`)
-    }
-
-    this._filename = filename;
-    this._index = parseInt(match[1]);
-    this._direction = match[2];
-    this._name = match[3]
-  }
-
-  get filename() { return this._filename }
-  get index() { return this._index }
-  get direction() { return this._direction }
-  get name() { return this._name }
-
-  load(): Promise<string> {
-    return _deps.fs.readTextFile(this.filename);
-  }
-}
-
-class IncompleteMigrationPair {
-  private _up?: MigrationFile;
-  private _down?: MigrationFile;
-
-  add(direction: string, migrationFile: MigrationFile) {
-    if (direction === "up") {
-      this._up = migrationFile;
-    } else if (direction === "down") {
-      this._down = migrationFile;
-    } else {
-      throw new Error(`Migration file must specify "up" or "down".`);
-    }
-  }
-
-  get up() { return this._up }
-  get down() { return this._down}
-}
-
-interface MigrationPair {
-  up: MigrationFile;
-  down: MigrationFile;
-}
-
-
 export class MigrationDirectory {
   private path: string;
   private migrationPairs: MigrationPair[];
@@ -84,11 +30,7 @@ export class MigrationDirectory {
         const migrationFile = new MigrationFile(entry.name);
         const { index, direction } = migrationFile;
 
-        if (!["up", "down"].includes(direction)) {
-          throw new Error(`Migration file name, ${migrationFile.filename}, does not specify "up" or "down".`);
-        }
-
-        if (!this.migrationPairs[index]) {
+        if (!incompletePairs[index]) {
           incompletePairs[index] = new IncompleteMigrationPair();
         }
 
@@ -99,23 +41,11 @@ export class MigrationDirectory {
       }
     }
 
-    for (const migrationPair of Object.values(this.migrationPairs)) {
-      if (migrationPair.up === undefined) {
-        throw new Error(`Missing "up" migration for file ${migrationPair.down?.filename}.`);
-      }
+    this.migrationPairs = Object.values(incompletePairs).map(
+      (pair) => pair.complete(),
+    );
 
-      if (migrationPair.down === undefined) {
-        throw new Error(`Missing "down" migration for file ${migrationPair.up?.filename}.`);
-      }
-
-      this.migrationPairs.push({ up: migrationPair.up, down: migrationPair.down });
-    }
-
-    this.migrationPairs.sort((a, b) => {
-      if (a.up.index < b.up.index) return -1;
-      if (a.up.index > b.up.index) return 1;
-      return 0;
-    });
+    this.migrationPairs.sort(MigrationPair.compare);
   }
 
   async load(from = 0, to?: number): Promise<Migration[]> {
@@ -140,5 +70,80 @@ export class MigrationDirectory {
     }
 
     return migrations;
+  }
+}
+
+
+class MigrationFile {
+  static pattern = /^(\d+)-(up|down)-(.*)\.sql$/;
+
+  private _filename: string;
+  private _index: number;
+  private _direction: string;
+  private _name: string;
+
+  constructor(filename: string) {
+    const match = MigrationFile.pattern.exec(filename);
+    if (!match) {
+      throw new Error(`Unable to parse filename: ${filename}`)
+    }
+
+    this._filename = filename;
+    this._index = parseInt(match[1]);
+    this._direction = match[2];
+    this._name = match[3]
+  }
+
+  get filename() { return this._filename }
+  get index() { return this._index }
+  get direction() { return this._direction }
+  get name() { return this._name }
+
+  load(): Promise<string> {
+    return _deps.fs.readTextFile(this.filename);
+  }
+}
+
+
+class IncompleteMigrationPair {
+  private _up?: MigrationFile;
+  private _down?: MigrationFile;
+
+  add(direction: string, migrationFile: MigrationFile) {
+    if (direction === "up") {
+      this._up = migrationFile;
+    } else if (direction === "down") {
+      this._down = migrationFile;
+    } else {
+      throw new Error(`Migration file must specify "up" or "down".`);
+    }
+  }
+
+  complete() {
+    if (this._up == null || this._down == null) {
+      throw new Error("Unable to complete migration pair.");
+    }
+
+    return new MigrationPair(this._up, this._down);
+  }
+
+  get up() { return this._up }
+  get down() { return this._down}
+}
+
+
+class MigrationPair {
+  up: MigrationFile;
+  down: MigrationFile;
+
+  static compare(a: MigrationPair, b: MigrationPair) {
+    if (a.up.index < b.up.index) return -1;
+    if (a.up.index > b.up.index) return 1;
+    return 0;
+  }
+
+  constructor(up: MigrationFile, down: MigrationFile) {
+    this.up = up;
+    this.down = down;
   }
 }
