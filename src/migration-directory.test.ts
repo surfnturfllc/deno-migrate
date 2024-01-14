@@ -1,62 +1,50 @@
-import { describe, it } from "https://deno.land/std@0.210.0/testing/bdd.ts";
-
+import { afterEach, describe, it } from "https://deno.land/std@0.210.0/testing/bdd.ts";
 
 import sinon from "npm:sinon";
 import { faker } from "https://deno.land/x/deno_faker@v1.0.3/mod.ts";
 
 
-import { MigrationDirectory } from "./migration-directory.ts";
+import { _deps, MigrationDirectory } from "./migration-directory.ts";
 
-
-function createMockMigrationDirEntries(index: number) {
-  const name = faker.random.words().toLowerCase().split(" ").join("-");
-  return [
-    {
-      isFile: true,
-      name: `${index}-up-${name}-${index}.sql`,
-    },
-    {
-      isFile: true,
-      name: `${index}-down-${name}-${index}.sql`,
-    },
-  ];
-}
-
-function createMockReadDir() {
-  const entries = [];
-  const count = 20;
-  for (let index = 0; index < count; index++) {
-    const [up, down] = createMockMigrationDirEntries(index);
-    entries.push(up);
-    entries.push(down);
-  }
-  return entries;
-}
-
-function createMockFS() {
-  return {
-    readDir: sinon.spy(createMockReadDir),
-    readTextFile: sinon.spy(faker.lorem.paragraph),
-  };
-}
+import { createFakeReadDir } from "./migration-directory.mock.ts";
 
 
 describe("MigrationDirectory", () => {
-  it("can be instantiated", () => {
-    const fs = createMockFS();
+  afterEach(sinon.restore);
 
-    new MigrationDirectory(faker.system.directoryPath(), fs);
-    sinon.assert.pass();
+  it("can be instantiated", () => {
+    sinon.stub(_deps.fs, "readDir").returns(createFakeReadDir());
+    sinon.stub(_deps.fs, "readTextFile").returns(faker.lorem.paragraph());
+
+    const path = faker.system.directoryPath();
+
+    new MigrationDirectory(path);
   });
 
-  it("can scan a directory for migrations", async () => {
-    const fs = createMockFS();
-    const mockPath = faker.system.directoryPath();
+  describe("scan", () => {
+    it("can scan a directory for migrations", async () => {
+      sinon.stub(_deps.fs, "readDir").returns(createFakeReadDir());
+      sinon.stub(_deps.fs, "readTextFile").returns(faker.lorem.paragraph());
 
-    const loader = new MigrationDirectory(mockPath, fs);
-    await loader.scan();
+      const path = faker.system.directoryPath();
+      const directory = new MigrationDirectory(path);
+      await directory.scan();
 
-    sinon.assert.calledOnce(fs.readDir);
-    sinon.assert.calledWith(fs.readDir, mockPath);
+      sinon.assert.calledOnce(_deps.fs.readDir);
+      sinon.assert.calledWith(_deps.fs.readDir, path);
+    });
+
+    it("prints an error message if it encounters an unparsable file name", async () => {
+      const dirEntries = createFakeReadDir().concat({ isFile: true, name: "invalid filename" });
+      sinon.stub(_deps.fs, "readDir").returns(dirEntries);
+      sinon.stub(_deps.fs, "readTextFile").returns(faker.lorem.paragraph());
+      sinon.stub(_deps.console, "error");
+
+      const path = faker.system.directoryPath();
+      const directory = new MigrationDirectory(path);
+      await directory.scan();
+
+      sinon.assert.called(_deps.console.error);
+    });
   });
 });

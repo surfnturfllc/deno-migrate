@@ -1,35 +1,29 @@
 import { QueryMigration } from "./query-migration.ts";
 
-
-interface DirEntry {
-  isFile: boolean;
-  name: string;
-}
-
-
-interface FileSystem {
-  readTextFile(url: string): Promise<string>;
-  readDir(path: string): AsyncIterable<DirEntry>;
-}
+export const _deps = {
+  console: {
+    error: console.error,
+  },
+  fs: {
+    readTextFile: Deno.readTextFile,
+    readDir: Deno.readDir,
+  },
+};
 
 
 const migrationFilePattern = /^(\d+)-(up|down)-(.*)\.sql$/;
 
 class MigrationFile {
-  private fs: FileSystem;
-
   private _filename: string;
   private _index: number;
   private _direction: string;
   private _name: string;
 
-  constructor(filename: string, fs: FileSystem = Deno) {
+  constructor(filename: string) {
     const match = migrationFilePattern.exec(filename);
     if (!match) {
       throw new Error(`Unable to parse filename: ${filename}`)
     }
-
-    this.fs = fs;
 
     this._filename = filename;
     this._index = parseInt(match[1]);
@@ -43,7 +37,7 @@ class MigrationFile {
   get name() { return this._name }
 
   load(): Promise<string> {
-    return this.fs.readTextFile(this.filename);
+    return _deps.fs.readTextFile(this.filename);
   }
 }
 
@@ -72,13 +66,10 @@ interface MigrationPair {
 
 
 export class MigrationDirectory {
-  private fs: FileSystem;
-
   private path: string;
   private migrationPairs: MigrationPair[];
 
-  constructor(path: string, fs: FileSystem = Deno) {
-    this.fs = fs;
+  constructor(path: string) {
     this.path = path;
     this.migrationPairs = [];
   }
@@ -86,11 +77,11 @@ export class MigrationDirectory {
   async scan(): Promise<void> {
     const incompletePairs: { [index: string]: IncompleteMigrationPair } = {};
 
-    for await (const entry of this.fs.readDir(this.path)) {
+    for await (const entry of _deps.fs.readDir(this.path)) {
       if (!entry.isFile) continue;
 
       try {
-        const migrationFile = new MigrationFile(entry.name, this.fs);
+        const migrationFile = new MigrationFile(entry.name);
         const { index, direction } = migrationFile;
 
         if (!["up", "down"].includes(direction)) {
@@ -103,7 +94,7 @@ export class MigrationDirectory {
 
         incompletePairs[index].add(direction, migrationFile);
       } catch (error) {
-        console.error(error);
+        _deps.console.error(error);
         continue;
       }
     }

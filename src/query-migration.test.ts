@@ -1,6 +1,6 @@
 /// <reference types="./types.d.ts" />
 
-import { afterEach, describe, it } from "https://deno.land/std@0.210.0/testing/bdd.ts";
+import { afterEach, beforeEach, describe, it } from "https://deno.land/std@0.210.0/testing/bdd.ts";
 import { assertEquals, assertRejects } from "https://deno.land/std@0.160.0/testing/asserts.ts";
 
 import sinon from "npm:sinon";
@@ -19,7 +19,11 @@ const fakeQueryMigrationArgs: [number, string, string] = [
 ];
 
 describe("QueryMigration", () => {
-  const client = new MockClient();
+  let client = new MockClient();
+
+  beforeEach(() => {
+    client = new MockClient();
+  });
 
   afterEach(sinon.restore);
 
