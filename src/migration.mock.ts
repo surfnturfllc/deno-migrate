@@ -15,7 +15,3 @@ export class MockMigration implements Migration {
   migrate = sinon.stub().resolves();
   revert = sinon.stub().resolves();
 }
-
-export class MockErrorMigration extends MockMigration {
-  migrate = sinon.stub().rejects();
-}

@@ -1,6 +1,5 @@
 import { 
   afterEach,
-  beforeEach,
   describe,
   it,
 } from "https://deno.land/std@0.210.0/testing/bdd.ts";
@@ -14,7 +13,7 @@ import { _deps, Migrator } from "./migrator.ts";
 
 
 import { MockClient } from "./postgres.mock.ts";
-import { MockMigration, MockErrorMigration } from "./migration.mock.ts";
+import { MockMigration } from "./migration.mock.ts";
 
 
 function MockMigrations(count = 10) {
@@ -23,13 +22,6 @@ function MockMigrations(count = 10) {
     migrations.push(new MockMigration(index));
   }
   return migrations;
-}
-
-function MockActions(client: Client, migrations: Migration[]) {
-  return migrations.map((migration) => ({
-    process: () => migration.migrate(client),
-    revert: () => migration.revert(client),
-  }));
 }
 
 
