@@ -5,7 +5,6 @@ import * as prompt from "https://raw.githubusercontent.com/surfnturfllc/deno-cli
 import { MigrationDirectory } from "./migration-directory.ts";
 import { Migrator } from "./migrator.ts";
 import { Database } from "./database.ts";
-import { Migration } from "./migration.ts";
 
 
 export const _deps = {

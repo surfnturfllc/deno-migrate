@@ -1,4 +1,4 @@
-import { Migration } from "./migration.ts";
+import { QueryMigration } from "./query-migration.ts";
 
 
 interface DirEntry {
@@ -141,7 +141,7 @@ export class MigrationDirectory {
 
     const migrations = [];
     for (const pair of toLoad) {
-      migrations.push(new Migration(
+      migrations.push(new QueryMigration(
         pair.up.index,
         await pair.up.load(),
         await pair.down.load(),

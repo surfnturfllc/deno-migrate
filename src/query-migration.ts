@@ -1,7 +1,7 @@
 /// <reference types="./types.d.ts" />
 
 
-export class Migration {
+export class QueryMigration implements Migration {
   private _index: number;
   private queries: { migrate: string, revert: string };
   

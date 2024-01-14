@@ -7,3 +7,8 @@ declare interface Client {
 declare interface QueryResult<Row> {
   rows: Row[];
 }
+
+declare interface Migration {
+  migrate(db: Client): Promise<void>;
+  revert(db: Client): Promise<void>;
+}
