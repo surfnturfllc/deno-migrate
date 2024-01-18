@@ -4,7 +4,16 @@ import { QueryMigration } from "../query-migration.ts";
 import { MigrationFile } from "./migration-file.ts";
 import { MigrationFilePair } from  "./migration-file-pair.ts";
 
-import { deps } from "./deps.ts";
+import { deps as external } from "./deps.ts";
+
+
+export const deps = {
+  ...external,
+  QueryMigration,
+  MigrationFile,
+  MigrationFilePair,
+};
+
 
 export class MigrationDirectory {
   private path: string;
@@ -22,11 +31,11 @@ export class MigrationDirectory {
       if (!entry.isFile) continue;
 
       try {
-        const migrationFile = new MigrationFile(entry.name);
+        const migrationFile = new deps.MigrationFile(entry.name);
         const { index, direction } = migrationFile;
 
         if (!incompletePairs[index]) {
-          incompletePairs[index] = new MigrationFilePair();
+          incompletePairs[index] = new deps.MigrationFilePair();
         }
 
         incompletePairs[index].add(direction, migrationFile);
@@ -57,7 +66,7 @@ export class MigrationDirectory {
 
     const migrations = [];
     for (const pair of toLoad) {
-      migrations.push(new QueryMigration(
+      migrations.push(new deps.QueryMigration(
         pair.up.index,
         await pair.up.load(),
         await pair.down.load(),

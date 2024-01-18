@@ -1,4 +1,4 @@
-import sinon from "npm:sinon";
+import { test } from "./deps-test.ts";
 
 
 export class MockMigration implements Migration {
@@ -12,6 +12,6 @@ export class MockMigration implements Migration {
 
   get index() { return this._index }
 
-  migrate = sinon.stub().resolves();
-  revert = sinon.stub().resolves();
+  migrate = test.stub().resolves();
+  revert = test.stub().resolves();
 }

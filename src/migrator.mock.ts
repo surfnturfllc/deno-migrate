@@ -1,8 +1,8 @@
-import sinon from "npm:sinon";
+import { test } from "./deps-test.ts";
 
 
 export function MockMigrator() {
   return {
-    migrate: sinon.stub().resolves(),
+    migrate: test.stub().resolves(),
   };
 }

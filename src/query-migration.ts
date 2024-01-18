@@ -1,10 +1,9 @@
 /// <reference types="./types.d.ts" />
+import { deps as external } from "./deps.ts";
 
 
-export const _deps = {
-  console: {
-    error: console.error,
-  },
+export const deps = {
+  ...external,
 };
 
 
@@ -26,7 +25,7 @@ export class QueryMigration implements Migration {
       await db.end();
     } catch (e) {
       if (e) {
-        _deps.console.error(e);
+        deps.console.error(e);
       }
       throw e;
     }
@@ -39,7 +38,7 @@ export class QueryMigration implements Migration {
       await db.end();
     } catch (e) {
       if (e) {
-        _deps.console.error(e);
+        deps.console.error(e);
       }
     }
   }

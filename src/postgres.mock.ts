@@ -1,8 +1,8 @@
-import sinon from "npm:sinon";
+import { test } from "./deps-test.ts";
 
 
 export class MockClient {
-  connect = sinon.stub().resolves();
-  queryObject = sinon.stub().resolves({ rows: [] });
-  end = sinon.stub().resolves();
+  connect = test.stub().resolves();
+  queryObject = test.stub().resolves({ rows: [] });
+  end = test.stub().resolves();
 }

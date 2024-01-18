@@ -1,7 +1,7 @@
-import sinon from "npm:sinon";
+import { test } from "./deps-test.ts";
 
 export function MockDatabase(version = 69) {
   return {
-    fetchVersion: sinon.stub().resolves(version),
+    fetchVersion: test.stub().resolves(version),
   };
 }

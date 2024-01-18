@@ -1,15 +1,12 @@
 /// <reference types="./types.d.ts" />
-
-import { afterEach, beforeEach, describe, it } from "https://deno.land/std@0.210.0/testing/bdd.ts";
-import { assertEquals, assertRejects } from "https://deno.land/std@0.160.0/testing/asserts.ts";
-
-import sinon from "npm:sinon";
+import { assert, mocks, stubs, test } from "./deps-test.ts";
+import { deps } from "./deps.ts";
 
 
-import { MockClient } from "./postgres.mock.ts";
+import { QueryMigration } from "./query-migration.ts";
 
 
-import { _deps, QueryMigration } from "./query-migration.ts";
+const { afterEach, beforeEach, describe, it, stub } = test;
 
 
 const fakeQueryMigrationArgs: [number, string, string] = [
@@ -19,13 +16,13 @@ const fakeQueryMigrationArgs: [number, string, string] = [
 ];
 
 describe("QueryMigration", () => {
-  let client = new MockClient();
+  let client = new mocks.Client();
 
   beforeEach(() => {
-    client = new MockClient();
+    client = new mocks.Client();
   });
 
-  afterEach(sinon.restore);
+  afterEach(stubs.restore);
 
   it("can be instantiated", () => {
     new QueryMigration(...fakeQueryMigrationArgs);
@@ -34,7 +31,7 @@ describe("QueryMigration", () => {
   it("knows its index", () => {
     const migration = new QueryMigration(...fakeQueryMigrationArgs);
 
-    assertEquals(migration.index, 1);
+    assert.equals(migration.index, 1);
   });
 
   describe("migrate", () => {
@@ -43,16 +40,16 @@ describe("QueryMigration", () => {
     it("can migrate forward", async () => {
       await migration.migrate(client);
 
-      sinon.assert.called(client.queryObject);
+      assert.called(client.queryObject);
     });
 
     it("rejects promise and prints message when encountering error in migration", async () => {
-      sinon.stub(_deps.console, "error").returns(undefined);
-      client.queryObject = sinon.stub().rejects();
+      stub(deps.console, "error").returns(undefined);
+      client.queryObject = stub().rejects();
 
-      await assertRejects(() => migration.migrate(client));
+      await assert.rejects(() => migration.migrate(client));
 
-      sinon.assert.called(_deps.console.error);
+      assert.called(deps.console.error);
     });
 
   });
@@ -63,16 +60,16 @@ describe("QueryMigration", () => {
     it("can revert itself", async () => {
       await migration.revert(client);
 
-      sinon.assert.called(client.queryObject);
+      assert.called(client.queryObject);
     });
 
     it("resolves promise but prints message when an error is encountered during rollback", async () => {
-      sinon.stub(_deps.console, "error");
-      client.queryObject = sinon.stub().rejects();
+      stub(deps.console, "error");
+      client.queryObject = stub().rejects();
 
       await migration.revert(client);
 
-      sinon.assert.called(_deps.console.error);
+      assert.called(deps.console.error);
     });
   });
 });

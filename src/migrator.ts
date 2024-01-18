@@ -1,8 +1,8 @@
-import { RevertableSequence } from "https://raw.githubusercontent.com/surfnturfllc/deno-af/main/src/revertable-sequence.ts";
+import { deps as external } from "./deps.ts";
 
 
-export const _deps = {
-  RevertableSequence,
+export const deps = {
+  ...external,
 };
 
 
@@ -19,7 +19,7 @@ export class Migrator {
       revert: () => migration.revert(client),
     }));
 
-    const sequence = new _deps.RevertableSequence(actions);
+    const sequence = new deps.RevertableSequence(actions);
 
     await sequence.process();
   }

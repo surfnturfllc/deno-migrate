@@ -1,22 +1,14 @@
-import { 
-  afterEach,
-  describe,
-  it,
-} from "https://deno.land/std@0.210.0/testing/bdd.ts";
+import { assert, test, mocks, stubs } from "./deps-test.ts";
 
-import sinon from "npm:sinon";
+import { deps, Migrator } from "./migrator.ts";
 
-import { MockRevertableSequence } from "https://raw.githubusercontent.com/surfnturfllc/deno-af/main/src/revertable-sequence.mock.ts";
-
-
-import { _deps, Migrator } from "./migrator.ts";
-
-
-import { MockClient } from "./postgres.mock.ts";
 import { MockMigration } from "./migration.mock.ts";
 
 
-function MockMigrations(count = 10) {
+const { afterEach, describe, it, stub } = test;
+
+
+function generateMigrations(count = 10) {
   const migrations = [];
   for (let index = 1; index <= count; index++) {
     migrations.push(new MockMigration(index));
@@ -28,46 +20,44 @@ function MockMigrations(count = 10) {
 describe("Migrator", () => {
   it("can be instantiated", () => {
     new Migrator([]);
-    sinon.assert.pass();
   });
+});
 
-  describe("migrate", () => {
-    const mocks = {
-      client: new MockClient(),
-      migrations: MockMigrations(),
-    };
+describe("An instance of Migrator", () => {
+  const client = new mocks.Client();
+  const migrations = generateMigrations();
 
-    afterEach(() => {
-      sinon.restore();
-    });
+  afterEach(stubs.restore);
+
+  describe("Migrator.prototype.migrate", () => {
 
     it("processes a sequence of migrations", async () => {
-      sinon.stub(_deps, "RevertableSequence").callsFake(
-        (actions: RevertableAction[]) => new MockRevertableSequence(actions),
+      stub(deps, "RevertableSequence").callsFake(
+        (actions: RevertableAction[]) => new mocks.RevertableSequence(actions),
       );
 
-      const migrator = new Migrator(mocks.migrations);
-      await migrator.migrate(mocks.client);
+      const migrator = new Migrator(migrations);
+      await migrator.migrate(client);
 
-      sinon.assert.called(_deps.RevertableSequence);
+      assert.called(deps.RevertableSequence);
 
-      for (const migration of mocks.migrations) {
-        sinon.assert.called(migration.migrate);
+      for (const migration of migrations) {
+        assert.called(migration.migrate);
       }
     });
 
     it("reverts a sequence of migrations", async () => {
-      sinon.stub(_deps, "RevertableSequence").callsFake(
-        (actions: RevertableAction[]) => new MockRevertableSequence(actions, true),
+      stub(deps, "RevertableSequence").callsFake(
+        (actions: RevertableAction[]) => new mocks.RevertableSequence(actions, true),
       );
 
-      const migrator = new Migrator(mocks.migrations);
-      await migrator.migrate(mocks.client);
+      const migrator = new Migrator(migrations);
+      await migrator.migrate(client);
 
-      sinon.assert.called(_deps.RevertableSequence);
+      assert.called(deps.RevertableSequence);
 
-      for (const migration of mocks.migrations) {
-        sinon.assert.called(migration.revert);
+      for (const migration of migrations) {
+        assert.called(migration.revert);
       }
     });
   });
