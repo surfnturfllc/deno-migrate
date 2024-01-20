@@ -4,7 +4,7 @@ import { QueryMigration } from "../query-migration.ts";
 import { MigrationFile } from "./migration-file.ts";
 import { MigrationFilePair } from  "./migration-file-pair.ts";
 
-import { deps as external } from "./deps.ts";
+import { deps as external } from "../deps.ts";
 
 
 export const deps = {
@@ -27,7 +27,8 @@ export class MigrationDirectory {
   async scan(): Promise<void> {
     const incompletePairs: { [index: string]: MigrationFilePair } = {};
 
-    for await (const entry of deps.fs.readDir(this.path)) {
+    const entries = deps.fs.readDir(this.path);
+    for await (const entry of entries) {
       if (!entry.isFile) continue;
 
       try {
@@ -59,7 +60,7 @@ export class MigrationDirectory {
 
     const toLoad = [];
     for (const pair of this.migrationPairs) {
-      if (pair.up.index >= from && pair.up.index < to) {
+      if (pair.up.index > from && pair.up.index <= to) {
         toLoad.push(pair);
       }
     }

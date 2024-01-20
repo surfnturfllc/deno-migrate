@@ -18,4 +18,8 @@ export const deps = {
     password: prompt.password,
   },
   RevertableSequence,
+  fs: {
+    readDir: Deno.readDir,
+    readTextFile: Deno.readTextFile,
+  },
 };

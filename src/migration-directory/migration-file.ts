@@ -1,4 +1,4 @@
-import { deps } from "./deps.ts";
+import { deps } from "../deps.ts";
 
 
 export class MigrationFile {

@@ -1,93 +1,128 @@
-import * as path from "https://deno.land/std@0.212.0/path/mod.ts";
-import { afterEach, beforeEach, describe, it } from "https://deno.land/std@0.210.0/testing/bdd.ts";
-import { assertRejects } from "https://deno.land/std@0.160.0/testing/asserts.ts";
+import { assert, faker, path, stubs, test } from "../deps-test.ts"
 
-import sinon from "npm:sinon";
-import { faker } from "https://deno.land/x/deno_faker@v1.0.3/mod.ts";
+import { deps, MigrationDirectory } from "./migration-directory.ts";
 
-import { deps } from "./deps.ts";
-import { MigrationDirectory } from "./migration-directory.ts";
+import { MockMigration } from "../migration.mock.ts";
+import { MockMigrationFile } from "./migration-file.mock.ts";
+import { MockMigrationFilePair } from "./migration-file-pair.mock.ts";
+
+
+const { afterEach, beforeEach, describe, it, stub } = test;
 
 
 describe("MigrationDirectory", () => {
   const path = faker.system.directoryPath();
 
   beforeEach(() => {
-    sinon.stub(deps.console, "error");
-    sinon.stub(deps.fs, "readTextFile").returns(faker.lorem.paragraph());
+    stub(deps.console, "error");
+    stub(deps.fs, "readTextFile").returns(faker.lorem.paragraph());
   });
 
-  afterEach(sinon.restore);
+  afterEach(stubs.restore);
 
   it("can be instantiated", () => {
-    sinon.stub(deps.fs, "readDir").returns(generateFakeReadDir());
+    stub(deps.fs, "readDir").returns(generateFakeReadDir());
 
     new MigrationDirectory(path);
   });
 
   describe("MigrationDirectory.prototype.scan", () => {
     it("can scan a directory for migrations", async () => {
-      sinon.stub(deps.fs, "readDir").returns(generateFakeReadDir());
+      stub(deps.fs, "readDir").returns(generateFakeReadDir());
 
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      sinon.assert.calledOnce(deps.fs.readDir);
-      sinon.assert.calledWith(deps.fs.readDir, path);
+      assert.calledOnce(deps.fs.readDir);
+      assert.calledWith(deps.fs.readDir, path);
     });
 
     it("ignores non-files", async () => {
-      sinon.stub(deps.fs, "readDir").returns(
+      stub(deps.fs, "readDir").returns(
         generateFakeReadDir().concat({ isFile: false, name: "foobar" }),
       );
 
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      sinon.assert.notCalled(deps.console.error);
+      assert.notCalled(deps.console.error);
     });
 
     it("prints an error message if it encounters an unparsable file name", async () => {
-      sinon.stub(deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
+      stub(deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
 
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      sinon.assert.called(deps.console.error);
+      assert.called(deps.console.error);
     });
 
     it("prints an error message if it encounters an unparsable file name", async () => {
-      sinon.stub(deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
+      stub(deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
 
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      sinon.assert.called(deps.console.error);
+      assert.called(deps.console.error);
     });
 
     it("throws an error if it encounters an up migration without a down", () => {
-      sinon.stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-up-foobar.sql" }]);
+      stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-up-foobar.sql" }]);
 
       const directory = new MigrationDirectory(path);
 
-      assertRejects(() => directory.scan());
+      assert.rejects(() => directory.scan());
     });
 
     it("throws an error if it encounters a down migration without an up", () => {
-      sinon.stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-down-foobar.sql" }]);
+      stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-down-foobar.sql" }]);
 
       const directory = new MigrationDirectory(path);
 
-      assertRejects(() => directory.scan());
+      assert.rejects(() => directory.scan());
     });
   });
 
   describe("MigrationDirectory.prototype.load", () => {
     it("reads migration file content and returns QueryMigrations", async () => {
+      const upMigrationFiles = generateMigrationFiles(10);
+      const downMigrationFiles = upMigrationFiles.map((file) => file.inverse());
+      const migrationFiles = upMigrationFiles.concat(downMigrationFiles);
+      const dirEntries = migrationFiles.map((e) => ({ isFile: true, name: e.filename }));
+      const migrationFilePairs = upMigrationFiles.map(
+        (up, index) => new MockMigrationFilePair(up, downMigrationFiles[index]),
+      );
 
+      stub(deps.fs, "readDir").returns(dirEntries);
+      stub(deps, "MigrationFile").callsFake(stubGeneratorFromArray(migrationFiles));
+      stub(deps, "MigrationFilePair").callsFake(stubGeneratorFromArray(migrationFilePairs))
+
+      const directory = new MigrationDirectory(path);
+      await directory.scan();
+      await directory.load();
+
+      for (const migrationFile of migrationFiles) {
+        assert.called(migrationFile.load);
+      }
     });
   });
 });
+
+function stubGeneratorFromArray<T>(a: Array<T>) {
+  const generator = function* <T>(a: Array<T>) {
+    while (true) yield* a;
+  };
+  const generate = generator(a);
+  return () => generate.next().value;
+}
+
+function generateMigrationFiles(count: number) {
+  const migrationFiles = [];
+  for (let index = 0; index < count; index++) {
+    migrationFiles.push(new MockMigrationFile());
+  }
+  return migrationFiles;
+}
 
 
 function generateFakeMigrationDirEntries(index: number) {
