@@ -1,11 +1,26 @@
 import { faker, path, test } from "../deps-test.ts";
 
 
+interface MockMigrationFileConfig {
+  index?: number;
+  direction?: string;
+  name?: string;
+  filename?: string;
+}
+
+
 export class MockMigrationFile {
-  index = faker.random.number({ max: 10000 });
-  direction = faker.helpers.randomize(["up", "down"]);
-  name = path.parse(faker.system.fileName()).name;
-  filename = `${this.index}-${this.direction}-${this.name}.sql`;
+  index: number;
+  direction: string;
+  name: string;
+  filename: string;
+
+  constructor(config?: MockMigrationFileConfig) {
+    this.index = config?.index ?? faker.random.number({ max: 10000 });
+    this.direction = config?.direction ?? faker.helpers.randomize(["up", "down"]);
+    this.name = config?.name ?? path.parse(faker.system.fileName()).name;
+    this.filename = config?.filename ?? `${this.index}-${this.direction}-${this.name}.sql`;
+  }
 
   load = test.stub();
 

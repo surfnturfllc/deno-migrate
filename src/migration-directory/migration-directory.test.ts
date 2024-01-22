@@ -2,7 +2,6 @@ import { assert, faker, path, stubs, test } from "../deps-test.ts"
 
 import { deps, MigrationDirectory } from "./migration-directory.ts";
 
-import { MockMigration } from "../migration.mock.ts";
 import { MockMigrationFile } from "./migration-file.mock.ts";
 import { MockMigrationFilePair } from "./migration-file-pair.mock.ts";
 

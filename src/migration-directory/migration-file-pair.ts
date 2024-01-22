@@ -8,13 +8,11 @@ export class MigrationFilePair {
   private _up?: MigrationFile;
   private _down?: MigrationFile;
 
-  add(direction: string, migrationFile: MigrationFile) {
-    if (direction === "up") {
-      this._up = migrationFile;
-    } else if (direction === "down") {
-      this._down = migrationFile;
-    } else {
-      throw new Error(`Migration file must specify "up" or "down".`);
+  add(file: MigrationFile) {
+    if (file.direction === "up") {
+      this._up = file;
+    } else { // MigrationFile enforces direction is always "up" or "down"
+      this._down = file;
     }
   }
 

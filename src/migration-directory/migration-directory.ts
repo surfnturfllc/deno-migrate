@@ -32,14 +32,13 @@ export class MigrationDirectory {
       if (!entry.isFile) continue;
 
       try {
-        const migrationFile = new deps.MigrationFile(entry.name);
-        const { index, direction } = migrationFile;
+        const file = new deps.MigrationFile(entry.name);
 
-        if (!incompletePairs[index]) {
-          incompletePairs[index] = new deps.MigrationFilePair();
+        if (!incompletePairs[file.index]) {
+          incompletePairs[file.index] = new deps.MigrationFilePair();
         }
 
-        incompletePairs[index].add(direction, migrationFile);
+        incompletePairs[file.index].add(file);
       } catch (error) {
         deps.console.error(error);
         continue;

@@ -9,9 +9,9 @@ export class MockMigrationFilePair {
   _up: MigrationFile;
   _down: MigrationFile;
 
-  constructor(up: MockMigrationFile, down: MockMigrationFile) {
-    this._up = up;
-    this._down = down;
+  constructor(up?: MockMigrationFile, down?: MockMigrationFile) {
+    this._up = up ?? new MockMigrationFile();
+    this._down = down ?? MockMigrationFile.prototype.inverse.apply(this.up)
     this.complete.returns({ up, down });
   }
 
