@@ -41,7 +41,7 @@ describe("MigrationFilePair", () => {
 
   it("can return an version of itself guaranteed to be complete", () => {
     const upPair = new MigrationFilePair();
-    const upFile = new MockMigrationFile();
+    const upFile = new MockMigrationFile({ direction: "up" });
     upPair.add(upFile);
     assert.throws(() => upPair.complete());
 
