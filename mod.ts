@@ -26,7 +26,7 @@ export async function command(path = "./schema") {
   const DATABASE_USER = deps.env.get("MIGRATE_DATABASE_USER") ?? "postgres";
 
   deps.console.log(`Connecting to ${DATABASE_NAME} at ${DATABASE_HOST}:${DATABASE_PORT} with user ${DATABASE_USER}...`);
-  const DATABASE_PASSWORD = await deps.prompt.password(`Password: `);
+  const DATABASE_PASSWORD = await deps.prompt.password("Password: ");
 
   const client = new deps.postgres.Client({
     database: DATABASE_NAME,

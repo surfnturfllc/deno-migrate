@@ -1,4 +1,6 @@
-.PHONY: test coverage clean install run;
+.PHONY: test coverage clean install run refresh-deps;
+
+PERMISSIONS = --allow-env --allow-net
 
 test:
 	deno test
@@ -13,11 +15,14 @@ clean:
 	rm ~/.deno/bin/migrate
 
 install: clean
-	deno install --allow-env --name migrate cli.ts
+	deno install ${PERMISSIONS} --name migrate cli.ts
 
 bin/migrate:
 	mkdir -p bin
-	deno compile --allow-env --output "bin/migrate" cli.ts
+	deno compile ${PERMISSIONS} --output "bin/migrate" cli.ts
 
 run:
-	deno run --allow-env cli.ts
+	deno run ${PERMISSIONS} cli.ts
+
+refresh-deps:
+	deno cache --reload mod.ts

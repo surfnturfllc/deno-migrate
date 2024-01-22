@@ -1,6 +1,6 @@
 import * as postgres from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
-import * as prompt from "https://raw.githubusercontent.com/surfnturfllc/deno-cli/main/src/prompt.ts";
+import { prompt } from "https://raw.githubusercontent.com/surfnturfllc/deno-cli/main/mod.ts";
 import { RevertableSequence } from "https://raw.githubusercontent.com/surfnturfllc/deno-af/main/src/revertable-sequence.ts";
 
 export const deps = {
