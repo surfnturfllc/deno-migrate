@@ -46,8 +46,3 @@ export async function command(path = "./schema") {
 
   return migrate(client, await directory.load(databaseVersion));
 }
-
-
-if (import.meta.main) {
-  await command();
-}
