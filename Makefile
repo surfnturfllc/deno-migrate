@@ -1,4 +1,4 @@
-.PHONY: test coverage install run;
+.PHONY: test coverage clean install run;
 
 test:
 	deno test
@@ -9,7 +9,10 @@ coverage:
 	deno test --coverage=.coverage
 	deno coverage .coverage --exclude=\.mock --exclude=cli
 
-install:
+clean:
+	rm ~/.deno/bin/migrate
+
+install: clean
 	deno install --allow-env --name migrate cli.ts
 
 bin/migrate:
