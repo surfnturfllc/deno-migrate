@@ -10,11 +10,11 @@ coverage:
 	deno coverage .coverage --exclude=\.mock --exclude=cli
 
 install:
-	deno install --allow-env --name migrate src/cli.ts
+	deno install --allow-env --name migrate cli.ts
 
 bin/migrate:
 	mkdir -p bin
-	deno compile --allow-env --output "bin/migrate" src/cli.ts
+	deno compile --allow-env --output "bin/migrate" cli.ts
 
 run:
-	deno run --allow-env src/cli.ts
+	deno run --allow-env cli.ts
