@@ -1,8 +1,7 @@
-import { assert, test, mocks, stubs } from "./deps-test.ts";
+import { assert, test, mocks, stubs } from "../test.deps.ts";
+import { MockMigration } from "../migration/migration.mock.ts";
 
 import { deps, Migrator } from "./migrator.ts";
-
-import { MockMigration } from "./migration.mock.ts";
 
 
 const { afterEach, describe, it, stub } = test;

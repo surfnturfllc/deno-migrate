@@ -1,6 +1,4 @@
-/// <reference types="./types.d.ts" />
-
-import { QueryMigration } from "../query-migration.ts";
+import { QueryMigration } from "../migration/query-migration.ts";
 import { MigrationFile } from "./migration-file.ts";
 import { MigrationFilePair } from  "./migration-file-pair.ts";
 

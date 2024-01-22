@@ -1,4 +1,4 @@
-import { assert, test, mocks, stubs } from "./deps-test.ts";
+import { assert, test, mocks, stubs } from "../test.deps.ts";
 
 
 import { Database } from "./database.ts";

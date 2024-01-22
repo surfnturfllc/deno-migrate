@@ -1,6 +1,6 @@
-import { MigrationDirectory } from "./migration-directory/mod.ts";
-import { Migrator } from "./migrator.ts";
-import { Database } from "./database.ts";
+import { MigrationDirectory } from "./migration-directory/migration-directory.ts";
+import { Migrator } from "./migrator/migrator.ts";
+import { Database } from "./database/database.ts";
 
 import { deps as external } from "./deps.ts";
 

@@ -1,4 +1,4 @@
-import { assert, test } from "../deps-test.ts";
+import { assert, test } from "../test.deps.ts";
 
 import { MigrationFilePair } from "./migration-file-pair.ts";
 

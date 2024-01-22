@@ -1,9 +1,8 @@
-/// <reference types="./types.d.ts" />
-import { assert, mocks, stubs, test } from "./deps-test.ts";
-import { deps } from "./deps.ts";
+import { assert, mocks, stubs, test } from "../test.deps.ts";
+import { deps } from "../deps.ts";
 
 
-import { QueryMigration } from "./query-migration.ts";
+import { QueryMigration } from "../migration/query-migration.ts";
 
 
 const { afterEach, beforeEach, describe, it, stub } = test;

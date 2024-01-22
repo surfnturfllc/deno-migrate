@@ -1,4 +1,4 @@
-import { faker, path, test } from "../deps-test.ts";
+import { faker, path, test } from "../test.deps.ts";
 
 
 interface MockMigrationFileConfig {

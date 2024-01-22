@@ -1,4 +1,4 @@
-import { assert, faker, path, stubs, test } from "../deps-test.ts"
+import { assert, faker, path, stubs, test } from "../test.deps.ts"
 
 import { deps, MigrationDirectory } from "./migration-directory.ts";
 

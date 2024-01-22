@@ -1,11 +1,11 @@
-import { assert, mocks, stubs, test } from "./deps-test.ts";
+import { assert, mocks, stubs, test } from "./test.deps.ts";
 
 import { MockMigrationDirectory } from "./migration-directory/migration-directory.mock.ts";
-import { MockMigrator } from "./migrator.mock.ts";
-import { MockDatabase } from "./database.mock.ts";
+import { MockMigrator } from "./migrator/migrator.mock.ts";
+import { MockDatabase } from "./database/database.mock.ts";
 
 
-import { command, deps } from "./migrate.ts";
+import { command, deps } from "./mod.ts";
 
 
 const { beforeEach, afterEach, describe, it, spy, stub } = test;

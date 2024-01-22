@@ -1,4 +1,4 @@
-import { assert, faker, test } from "../deps-test.ts";
+import { assert, faker, test } from "../test.deps.ts";
 
 import { deps } from "../deps.ts";
 import { MockMigrationFile } from "./migration-file.mock.ts";

@@ -1,4 +1,4 @@
-import { command } from "./migrate.ts";
+import { command } from "./mod.ts";
 
 if (import.meta.main) {
   await command();

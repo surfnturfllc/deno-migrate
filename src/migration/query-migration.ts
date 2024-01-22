@@ -1,5 +1,4 @@
-/// <reference types="./types.d.ts" />
-import { deps as external } from "./deps.ts";
+import { deps as external } from "../deps.ts";
 
 
 export const deps = {

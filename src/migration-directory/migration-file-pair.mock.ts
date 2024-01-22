@@ -1,4 +1,4 @@
-import { test } from "../deps-test.ts";
+import { test } from "../test.deps.ts";
 
 import { MockMigrationFile } from "./migration-file.mock.ts";
 

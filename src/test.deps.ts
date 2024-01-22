@@ -10,7 +10,7 @@ import { assertEquals, assertRejects, assertThrows } from "https://deno.land/std
 import { default as sinon } from "npm:sinon";
 import { faker as fakerMod } from "https://deno.land/x/deno_faker@v1.0.3/mod.ts";
 
-import { MockClient } from "./postgres.mock.ts";
+import { MockClient } from "./database/postgres.mock.ts";
 import { MockRevertableSequence } from "https://raw.githubusercontent.com/surfnturfllc/deno-af/main/src/revertable-sequence.mock.ts";
 
 

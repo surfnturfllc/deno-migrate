@@ -1,9 +1,9 @@
-import sinon from "npm:sinon";
+import { test } from "../test.deps.ts";
 
 
 export function MockMigrationDirectory() {
   return {
-    scan: sinon.stub().resolves(),
-    load: sinon.stub().resolves([]),
+    scan: test.stub().resolves(),
+    load: test.stub().resolves([]),
   };
 }

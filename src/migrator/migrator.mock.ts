@@ -1,4 +1,4 @@
-import { test } from "./deps-test.ts";
+import { test } from "../test.deps.ts";
 
 
 export function MockMigrator() {
