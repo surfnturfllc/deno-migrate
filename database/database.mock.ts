@@ -1,7 +1,9 @@
 import { test } from "../test.deps.ts";
 
-export function MockDatabase(version = 69) {
-  return {
-    fetchVersion: test.stub().resolves(version),
-  };
+export class MockDatabase {
+  fetchVersion = test.stub();
+
+  constructor(version = 69) {
+    this.fetchVersion.resolves(version);
+  }
 }

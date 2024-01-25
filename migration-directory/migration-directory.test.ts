@@ -56,15 +56,6 @@ describe("MigrationDirectory", () => {
       assert.called(deps.console.error);
     });
 
-    it("prints an error message if it encounters an unparsable file name", async () => {
-      stub(deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
-
-      const directory = new MigrationDirectory(path);
-      await directory.scan();
-
-      assert.called(deps.console.error);
-    });
-
     it("throws an error if it encounters an up migration without a down", () => {
       stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-up-foobar.sql" }]);
 

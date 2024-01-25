@@ -1,10 +1,6 @@
 import { assert, stubs, test } from "./test.deps.ts";
 import mock from "./deps.mock.ts";
 
-import { MockMigrationDirectory } from "./migration-directory/migration-directory.mock.ts";
-import { MockMigrator } from "./migrator/migrator.mock.ts";
-import { MockDatabase } from "./database/database.mock.ts";
-
 
 import { command, deps } from "./mod.ts";
 
@@ -16,9 +12,9 @@ describe("migrate command", () => {
   const fakeDBVersion = 69;
 
   const client = new mock.postgres.Client();
-  const directory = MockMigrationDirectory();
-  const migrator = MockMigrator();
-  const database = MockDatabase(fakeDBVersion);
+  const directory = new mock.MigrationDirectory();
+  const migrator = new mock.Migrator();
+  const database = new mock.Database(fakeDBVersion);
 
   let ClientSpy = spy();
   

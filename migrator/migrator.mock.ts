@@ -1,8 +1,6 @@
 import { test } from "../test.deps.ts";
 
 
-export function MockMigrator() {
-  return {
-    migrate: test.stub().resolves(),
-  };
+export class MockMigrator {
+  migrate = test.stub().resolves();
 }

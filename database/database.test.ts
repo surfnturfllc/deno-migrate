@@ -1,10 +1,10 @@
 import { assert, test, stubs } from "../test.deps.ts";
 import mock from "../deps.mock.ts";
 
-import { Database } from "./database.ts";
+import { deps, Database } from "./database.ts";
 
 
-const { afterEach, describe, it } = test;
+const { afterEach, describe, it, stub } = test;
 
 
 describe("Database", () => {
@@ -14,7 +14,21 @@ describe("Database", () => {
     new Database();
   });
 
-  describe("fetchVersion", () => {
+  describe("Database.prototype.initialize", async () => {
+    const migrator = new mock.Migrator();
+    stub(deps, "QueryMigration").returns(new mock.Migration());
+    stub(deps, "Migrator").returns(migrator);
+
+    const client = new mock.postgres.Client();
+    const database = new Database();
+    await database.initialize(client);
+
+    assert.calledWithNew(deps.QueryMigration);
+    assert.calledWithNew(deps.Migrator);
+    assert.called(migrator.migrate);
+  });
+
+  describe("Database.prototype.fetchVersion", () => {
     it("can query the database for its most recent migration version", async () => {
       const client = new mock.postgres.Client();
       const database = new Database();

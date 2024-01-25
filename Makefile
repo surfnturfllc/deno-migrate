@@ -1,6 +1,7 @@
 .PHONY: test coverage clean install run refresh-deps;
 
 PERMISSIONS = --allow-env --allow-net
+EXCLUDE_FROM_COVERAGE = --exclude=\.mock --exclude=cli --exclude=deps
 
 test:
 	deno test
@@ -9,7 +10,7 @@ coverage:
 	rm -rf .coverage
 	mkdir -p .coverage
 	deno test --coverage=.coverage
-	deno coverage .coverage --exclude=\.mock --exclude=cli --exclude=deps
+	deno coverage .coverage --detailed ${EXCLUDE_FROM_COVERAGE}
 
 clean:
 	rm ~/.deno/bin/migrate
