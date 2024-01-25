@@ -1,5 +1,5 @@
-import { assert, test, mocks, stubs } from "../test.deps.ts";
-
+import { assert, test, stubs } from "../test.deps.ts";
+import mock from "../deps.mock.ts";
 
 import { Database } from "./database.ts";
 
@@ -16,7 +16,7 @@ describe("Database", () => {
 
   describe("fetchVersion", () => {
     it("can query the database for its most recent migration version", async () => {
-      const client = new mocks.Client();
+      const client = new mock.postgres.Client();
       const database = new Database();
       client.queryObject.resolves({ rows: [{ index: 69 }]});
       const version = await database.fetchVersion(client);

@@ -1,4 +1,5 @@
-import { assert, test, mocks, stubs } from "../test.deps.ts";
+import { assert, test, stubs } from "../test.deps.ts";
+import mock from "../deps.mock.ts";
 import { MockMigration } from "../migration/migration.mock.ts";
 
 import { deps, Migrator } from "./migrator.ts";
@@ -24,14 +25,14 @@ describe("Migrator", () => {
 
 describe("Migrator.prototype.migrate", () => {
 
-  const client = new mocks.Client();
+  const client = new mock.postgres.Client();
   const migrations = generateMigrations();
 
   afterEach(stubs.restore);
 
   it("processes a sequence of migrations", async () => {
     stub(deps, "RevertableSequence").callsFake(
-      (actions: RevertableAction[]) => new mocks.RevertableSequence(actions),
+      (actions: RevertableAction[]) => new mock.RevertableSequence(actions),
     );
 
     const migrator = new Migrator(migrations);
@@ -46,7 +47,7 @@ describe("Migrator.prototype.migrate", () => {
 
   it("reverts a sequence of migrations", async () => {
     stub(deps, "RevertableSequence").callsFake(
-      (actions: RevertableAction[]) => new mocks.RevertableSequence(actions, true),
+      (actions: RevertableAction[]) => new mock.RevertableSequence(actions, true),
     );
 
     const migrator = new Migrator(migrations);

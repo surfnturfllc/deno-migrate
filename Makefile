@@ -9,7 +9,7 @@ coverage:
 	rm -rf .coverage
 	mkdir -p .coverage
 	deno test --coverage=.coverage
-	deno coverage .coverage --exclude=\.mock --exclude=cli
+	deno coverage .coverage --exclude=\.mock --exclude=cli --exclude=deps
 
 clean:
 	rm ~/.deno/bin/migrate

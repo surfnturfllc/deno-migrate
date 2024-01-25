@@ -1,6 +1,7 @@
-import { assert, mocks, stubs, test } from "../test.deps.ts";
-import { deps } from "../deps.ts";
+import { assert, stubs, test } from "../test.deps.ts";
+import mock from "../deps.mock.ts";
 
+import { deps } from "../deps.ts";
 
 import { QueryMigration } from "../migration/query-migration.ts";
 
@@ -15,10 +16,10 @@ const fakeQueryMigrationArgs: [number, string, string] = [
 ];
 
 describe("QueryMigration", () => {
-  let client = new mocks.Client();
+  let client = new mock.postgres.Client();
 
   beforeEach(() => {
-    client = new mocks.Client();
+    client = new mock.postgres.Client();
   });
 
   afterEach(stubs.restore);
