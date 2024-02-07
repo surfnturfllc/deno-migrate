@@ -1,0 +1,19 @@
+services:
+  migrate-system-test-postgres:
+    image: postgres:16.1-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: "migrate-system-test"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  migrate-system-test:
+    build:
+      context: ..
+      dockerfile: ./system-test/Dockerfile
+    depends_on:
+      migrate-system-test-postgres:
+        condition: service_healthy

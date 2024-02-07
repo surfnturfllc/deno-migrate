@@ -20,7 +20,14 @@ describe("migrate command", () => {
   
   beforeEach(() => {
     stub(deps.console, "log").returns(undefined);
-    stub(deps.env, "get").returns("test environment value");
+    stub(deps.env, "get").callsFake((key = "default") => {
+      switch (key) {
+        case "MIGRATE_DATABASE_PASSWORD":
+          return undefined;
+        default:
+          return "test environment value";
+      }
+    });
     stub(deps.prompt, "password").resolves("test password");
     ClientSpy = stub(deps.postgres, "Client").returns(client);
     stub(deps, "MigrationDirectory").returns(directory);
@@ -31,19 +38,26 @@ describe("migrate command", () => {
   afterEach(stubs.restore);
 
   it("is configured using env vars", async () => {
-    await command();
+    const old = { args: deps.args };
+    deps.args = ["migrate", "initialize"];
 
-    assert.calledWith(deps.env.get, "MIGRATE_DATABASE");
-    assert.calledWith(deps.env.get, "MIGRATE_DATABASE_HOST");
-    assert.calledWith(deps.env.get, "MIGRATE_DATABASE_PORT");
-    assert.calledWith(deps.env.get, "MIGRATE_DATABASE_USER");
+    try {
+      await command();
 
-    const config = ClientSpy.getCall(0).firstArg;
-    assert.equals(config.database, "test environment value");
-    assert.equals(config.hostname, "test environment value");
-    assert.equals(config.port, "test environment value");
-    assert.equals(config.user, "test environment value");
-    assert.equals(config.password, "test password");
+      assert.calledWith(deps.env.get, "MIGRATE_DATABASE");
+      assert.calledWith(deps.env.get, "MIGRATE_DATABASE_HOST");
+      assert.calledWith(deps.env.get, "MIGRATE_DATABASE_PORT");
+      assert.calledWith(deps.env.get, "MIGRATE_DATABASE_USER");
+
+      const config = ClientSpy.getCall(0).firstArg;
+      assert.equals(config.database, "test environment value");
+      assert.equals(config.hostname, "test environment value");
+      assert.equals(config.port, "test environment value");
+      assert.equals(config.user, "test environment value");
+      assert.equals(config.password, "test password");
+    } finally {
+      deps.args = old.args;
+    }
   });
 
   it("uses default values if env vars aren't set", async () => {

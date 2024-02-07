@@ -27,7 +27,13 @@ const queries = {
 
 
 export class Database {
-  async initialize(client: Client): Promise<void> {
+  client: Client;
+
+  constructor(client: Client) {
+    this.client = client;
+  }
+
+  async initialize(): Promise<void> {
     const migrator = new deps.Migrator([
       new deps.QueryMigration(
         1,
@@ -35,11 +41,11 @@ export class Database {
         queries.initialize.revert,
       ),
     ]);
-    await migrator.migrate(client);
+    await migrator.migrate(this.client);
   }
 
-  async fetchVersion(client: Client): Promise<number> {
-    const { rows } = await client.queryObject<{ index: number }>(
+  async fetchVersion(): Promise<number> {
+    const { rows } = await this.client.queryObject<{ index: number }>(
       "SELECT index FROM _migrations ORDER BY index DESC LIMIT 1",
     );
     return rows[0].index;

@@ -1,5 +1,10 @@
 import { command } from "./mod.ts";
 
 if (import.meta.main) {
-  await command();
+  try {
+    await command();
+  } catch (err: unknown) {
+    console.error("Unknown error occurred at runtime:");
+    console.error(err);
+  }
 }

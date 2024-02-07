@@ -1,9 +1,12 @@
+import { parseArgs } from "https://deno.land/std@0.207.0/cli/parse_args.ts";
 import * as postgres from "https://deno.land/x/postgres@v0.17.0/mod.ts";
+
 
 import { prompt } from "https://raw.githubusercontent.com/surfnturfllc/deno-cli/main/mod.ts";
 import { RevertableSequence } from "https://raw.githubusercontent.com/surfnturfllc/deno-af/main/src/revertable-sequence.ts";
 
 export const deps = {
+  args: Deno.args,
   console: {
     log: console.log,
     error: console.error,
@@ -11,6 +14,7 @@ export const deps = {
   env: {
     get: Deno.env.get,
   },
+  parseArgs,
   postgres: {
     Client: postgres.Client,
   },

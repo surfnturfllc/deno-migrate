@@ -11,7 +11,7 @@ describe("Database", () => {
   afterEach(stubs.restore);
 
   it("can be instantiated", () => {
-    new Database();
+    new Database(new mock.postgres.Client());
   });
 
   describe("Database.prototype.initialize", async () => {
@@ -20,8 +20,8 @@ describe("Database", () => {
     stub(deps, "Migrator").returns(migrator);
 
     const client = new mock.postgres.Client();
-    const database = new Database();
-    await database.initialize(client);
+    const database = new Database(client);
+    await database.initialize();
 
     assert.calledWithNew(deps.QueryMigration);
     assert.calledWithNew(deps.Migrator);
@@ -31,9 +31,9 @@ describe("Database", () => {
   describe("Database.prototype.fetchVersion", () => {
     it("can query the database for its most recent migration version", async () => {
       const client = new mock.postgres.Client();
-      const database = new Database();
+      const database = new Database(client);
       client.queryObject.resolves({ rows: [{ index: 69 }]});
-      const version = await database.fetchVersion(client);
+      const version = await database.fetchVersion();
 
       assert.called(client.queryObject);
       assert.equals(version, 69);
