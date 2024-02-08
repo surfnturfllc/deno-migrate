@@ -14,7 +14,7 @@ export const deps =  {
 
 
 export function help() {
-  console.log("migrate your life");
+  deps.console.log("migrate your life");
 }
 
 
@@ -43,7 +43,7 @@ async function initialize() {
   });
 
   if (flags.help) {
-    console.log("migrate your aesthetic");
+    deps.console.log("migrate your aesthetic");
     return;
   }
 
@@ -55,14 +55,14 @@ async function initialize() {
 }
 
 
-async function migrate() {
+async function up() {
   const flags = deps.parseArgs(deps.args, {
     boolean: ["help"],
     string: ["schema"],
   });
 
   if (flags.help) {
-    console.log("migrate your aesthetic");
+    deps.console.log("migrate your aesthetic");
     return;
   }
 
@@ -91,8 +91,8 @@ export async function command() {
     case "initialize":
       await initialize();
       break;
-    case "migrate":
-      await migrate();
+    case "up":
+      await up();
       break;
     case "help":
     default:

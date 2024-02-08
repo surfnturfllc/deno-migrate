@@ -13,7 +13,7 @@ unit-test:
 unit-test-coverage:
 	rm -rf .coverage
 	mkdir -p .coverage
-	deno test --coverage=.coverage
+	deno test --ignore=system-test --coverage=.coverage
 	deno coverage .coverage --detailed ${EXCLUDE_FROM_COVERAGE}
 
 system-test:

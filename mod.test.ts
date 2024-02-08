@@ -1,11 +1,26 @@
 import { assert, stubs, test } from "./test.deps.ts";
 import mock from "./deps.mock.ts";
 
-
 import { command, deps } from "./mod.ts";
 
-
 const { beforeEach, afterEach, describe, it, spy, stub } = test;
+
+
+function mockArgs(args: string[], fn: () => unknown) {
+  return async () => {
+    const old = { args: deps.args };
+    deps.args = ["migrate"].concat(args);
+
+    try {
+      await fn();
+    } catch (err) {
+      console.error(err);
+      throw err;
+    } finally {
+      deps.args = old.args;
+    }
+  };
+}
 
 
 describe("migrate command", () => {
@@ -37,11 +52,21 @@ describe("migrate command", () => {
 
   afterEach(stubs.restore);
 
-  it("is configured using env vars", async () => {
-    const old = { args: deps.args };
-    deps.args = ["migrate", "initialize"];
+  describe("migrate help", () => {
+    it("displays usage instructions", mockArgs(["help"], async () => {
+      await command();
+      assert.called(deps.console.log);
+    }));
+  });
 
-    try {
+  describe("migrate initialize", () => {
+    it("displays usage information if --help flag is present", mockArgs(["initialize", "--help"], async () => {
+      await command();
+
+      assert.called(deps.console.log);
+    }));
+
+    it("is configured using env vars", mockArgs(["initialize"], async () => {
       await command();
 
       assert.calledWith(deps.env.get, "MIGRATE_DATABASE");
@@ -55,52 +80,59 @@ describe("migrate command", () => {
       assert.equals(config.port, "test environment value");
       assert.equals(config.user, "test environment value");
       assert.equals(config.password, "test password");
-    } finally {
-      deps.args = old.args;
-    }
+    }));
+
+    it("uses default values if env vars aren't set", mockArgs(["initialize"], async () => {
+      // deno-lint-ignore no-explicit-any
+      (deps.env.get as any).restore();
+      stub(deps.env, "get").returns(undefined);
+
+      await command();
+
+      const config = ClientSpy.getCall(0).firstArg;
+      assert.equals(config.database, "postgres");
+      assert.equals(config.hostname, "localhost");
+      assert.equals(config.port, "5432");
+      assert.equals(config.user, "postgres");
+      assert.equals(config.password, "test password");
+    }));
+
+    it("provides informational output and prompts user for password", mockArgs(["initialize"], async () => {
+      await command();
+
+      assert.called(deps.console.log);
+      assert.called(deps.prompt.password);
+    }));
   });
 
-  it("uses default values if env vars aren't set", async () => {
-    // deno-lint-ignore no-explicit-any
-    (deps.env.get as any).restore();
-    stub(deps.env, "get").returns(undefined);
 
-    await command();
+  describe("migrate up", () => {
+    it("displays usage information if --help flag is present", mockArgs(["up", "--help"], async () => {
+      await command();
 
-    const config = ClientSpy.getCall(0).firstArg;
-    assert.equals(config.database, "postgres");
-    assert.equals(config.hostname, "localhost");
-    assert.equals(config.port, "5432");
-    assert.equals(config.user, "postgres");
-    assert.equals(config.password, "test password");
-  });
+      assert.called(deps.console.log);
+    }));
 
-  it("provides informational output and prompts user for password", async () => {
-    await command();
+    it("connects to postgres and retrieves migration version", mockArgs(["up"], async () => {
+      await command();
 
-    assert.called(deps.console.log);
-    assert.called(deps.prompt.password);
-  });
+      assert.calledWithNew(deps.postgres.Client);
+      assert.calledWithNew(deps.Database);
+      assert.called(database.fetchVersion);
+    }));
 
-  it("connects to postgres and retrieves migration version", async () => {
-    await command();
+    it("scans directory for migrations and loads those newer than current version", mockArgs(["up"], async () => {
+      await command();
 
-    assert.calledWithNew(deps.postgres.Client);
-    assert.calledWithNew(deps.Database);
-    assert.called(database.fetchVersion);
-  });
+      assert.called(directory.scan);
+      assert.called(directory.load);
+    }));
 
-  it("scans directory for migrations and loads those newer than current version", async () => {
-    await command();
+    it("creates a Migrator and calls it's migrate method", mockArgs(["up"], async () => {
+      await command();
 
-    assert.called(directory.scan);
-    assert.called(directory.load);
-  });
-
-  it("creates a Migrator and calls it's migrate method", async () => {
-    await command();
-
-    assert.calledWithNew(deps.Migrator);
-    assert.called(migrator.migrate);
+      assert.calledWithNew(deps.Migrator);
+      assert.called(migrator.migrate);
+    }));
   });
 });
