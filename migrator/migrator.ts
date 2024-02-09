@@ -23,9 +23,15 @@ export class Migrator {
 
     await sequence.process();
 
-    const { index, name } = this.migrations[this.migrations.length - 1];
     await db.connect();
-    await db.queryArray(`INSERT INTO _migrations (index, name) VALUES ('${index}', '${name}')`);
+    const t = db.createTransaction("update migrations table");
+
+    await t.begin();
+    for (const m of this.migrations) {
+      await t.queryArray(`INSERT INTO _migrations (index, name) VALUES ('${m.index}', '${m.name}')`);
+    }
+    await t.commit();
+
     await db.end();
   }
 }

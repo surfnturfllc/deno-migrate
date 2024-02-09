@@ -110,6 +110,12 @@ describe("migrate cli", () => {
 
     it("runs sucessfully", async () => {
       await migrate("initialize");
+
+      {
+        const result = await db.queryObject<{ index: number }>(`SELECT index FROM _migrations`);
+        assert.equal(result.rows[0].index, 0);
+      }
+
       const { code, stderr } = await migrate("up");
 
       assert.equal(code, 0);
@@ -117,12 +123,19 @@ describe("migrate cli", () => {
 
       await db.queryArray(`INSERT INTO people (name, address, email) VALUES ('Bob', '123 Bob St.', 'bob@bobcom.com')`);
 
-      const result = await db.queryObject<{ name: string; address: string; email: string }>(`SELECT * FROM people LIMIT 1`);
-      const { name, address, email } = result.rows[0];
+      {
+        const result = await db.queryObject<{ name: string; address: string; email: string }>(`SELECT * FROM people LIMIT 1`);
+        const { name, address, email } = result.rows[0];
 
-      assert.equal(name, "Bob");
-      assert.equal(address, "123 Bob St.");
-      assert.equal(email, "bob@bobcom.com");
+        assert.equal(name, "Bob");
+        assert.equal(address, "123 Bob St.");
+        assert.equal(email, "bob@bobcom.com");
+      }
+
+      {
+        const result = await db.queryObject<{ index: number }>(`SELECT index FROM _migrations ORDER BY index DESC LIMIT 1`);
+        assert.equal(result.rows[0].index, 3);
+      }
     });
   });
 });
