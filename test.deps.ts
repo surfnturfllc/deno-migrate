@@ -12,7 +12,7 @@ import { faker as fakerMod } from "https://deno.land/x/deno_faker@v1.0.3/mod.ts"
 
 
 export const assert = {
-  equals: assertEquals,
+  equal: assertEquals,
   rejects: assertRejects,
   throws: assertThrows,
 

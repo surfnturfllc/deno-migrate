@@ -36,7 +36,7 @@ describe("Database", () => {
       const version = await database.fetchVersion();
 
       assert.called(client.queryObject);
-      assert.equals(version, 69);
+      assert.equal(version, 69);
     });
   });
 });

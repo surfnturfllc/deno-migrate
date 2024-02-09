@@ -13,14 +13,19 @@ export class Migrator {
     this.migrations = migrations;
   }
 
-  async migrate(client: Client) {
+  async migrate(db: Client) {
     const actions = this.migrations.map((migration) => ({
-      process: () => migration.migrate(client),
-      revert: () => migration.revert(client),
+      process: () => migration.migrate(db),
+      revert: () => migration.revert(db),
     }));
 
     const sequence = new deps.RevertableSequence(actions);
 
     await sequence.process();
+
+    const { index, name } = this.migrations[this.migrations.length - 1];
+    await db.connect();
+    await db.queryArray(`INSERT INTO _migrations (index, name) VALUES ('${index}', '${name}')`);
+    await db.end();
   }
 }

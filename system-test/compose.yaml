@@ -2,6 +2,8 @@ services:
   migrate-system-test-postgres:
     image: postgres:16.1-alpine
     restart: always
+    logging:
+      driver: none
     environment:
       POSTGRES_USER: "migrate-system-test"
       POSTGRES_HOST_AUTH_METHOD: "trust"

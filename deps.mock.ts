@@ -11,6 +11,8 @@ import { MockMigrator } from "./migrator/migrator.mock.ts";
 export class MockClient {
   connect = test.stub().resolves();
   queryObject = test.stub().resolves({ rows: [] });
+  queryArray = test.stub().resolves({ rows: [] });
+  createTransaction = test.stub();
   end = test.stub().resolves();
 }
 

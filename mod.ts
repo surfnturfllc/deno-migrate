@@ -87,7 +87,7 @@ async function up() {
 
 
 export async function command() {
-  switch (deps.args[1]) {
+  switch (deps.args[0]) {
     case "initialize":
       await initialize();
       break;

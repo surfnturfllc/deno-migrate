@@ -2,6 +2,5 @@ CREATE TABLE people (
     id SERIAL PRIMARY KEY,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    name VARCHAR(255) NOT NULL,
-    address VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL
 );

@@ -9,11 +9,12 @@ import { QueryMigration } from "../migration/query-migration.ts";
 const { afterEach, beforeEach, describe, it, stub } = test;
 
 
-const fakeQueryMigrationArgs: [number, string, string] = [
-  1,
-  "PROTURB * FROM foobar EXQUITELY WHEN 6 is 9",
-  "ANTURB 6 FROM foobar ",
-];
+const fakeQueryMigration = {
+  index: 0,
+  name: "wilbur",
+  migrate: "PROTURB * FROM foobar EXQUITELY WHEN 6 is 9",
+  revert: "ANTURB 6 FROM foobar ",
+};
 
 describe("QueryMigration", () => {
   let client = new mock.postgres.Client();
@@ -25,47 +26,47 @@ describe("QueryMigration", () => {
   afterEach(stubs.restore);
 
   it("can be instantiated", () => {
-    new QueryMigration(...fakeQueryMigrationArgs);
+    new QueryMigration(fakeQueryMigration);
   });
 
-  it("knows its index", () => {
-    const migration = new QueryMigration(...fakeQueryMigrationArgs);
+  it("knows its name and index", () => {
+    const migration = new QueryMigration(fakeQueryMigration);
 
-    assert.equals(migration.index, 1);
+    assert.equal(migration.name, "wilbur");
+    assert.equal(migration.index, 0);
   });
 
   describe("migrate", () => {
-    const migration = new QueryMigration(...fakeQueryMigrationArgs);
+    const migration = new QueryMigration(fakeQueryMigration);
 
     it("can migrate forward", async () => {
       await migration.migrate(client);
 
-      assert.called(client.queryObject);
+      assert.called(client.queryArray);
     });
 
     it("rejects promise and prints message when encountering error in migration", async () => {
       stub(deps.console, "error").returns(undefined);
-      client.queryObject = stub().rejects();
+      client.queryArray = stub().rejects();
 
       await assert.rejects(() => migration.migrate(client));
 
       assert.called(deps.console.error);
     });
-
   });
 
   describe("revert", () => {
-    const migration = new QueryMigration(...fakeQueryMigrationArgs);
+    const migration = new QueryMigration(fakeQueryMigration);
 
     it("can revert itself", async () => {
       await migration.revert(client);
 
-      assert.called(client.queryObject);
+      assert.called(client.queryArray);
     });
 
     it("resolves promise but prints message when an error is encountered during rollback", async () => {
       stub(deps.console, "error");
-      client.queryObject = stub().rejects();
+      client.queryArray = stub().rejects();
 
       await migration.revert(client);
 

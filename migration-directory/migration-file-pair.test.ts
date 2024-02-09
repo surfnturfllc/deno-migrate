@@ -22,9 +22,9 @@ describe("MigrationFilePair", () => {
       new MockMigrationFile({ index: 10, direction: "up" }),
     );
     
-    assert.equals(MigrationFilePair.compare(lowIndexPair, highIndexPair), -1);
-    assert.equals(MigrationFilePair.compare(lowIndexPair, lowIndexPair), 0);
-    assert.equals(MigrationFilePair.compare(highIndexPair, lowIndexPair), 1);
+    assert.equal(MigrationFilePair.compare(lowIndexPair, highIndexPair), -1);
+    assert.equal(MigrationFilePair.compare(lowIndexPair, lowIndexPair), 0);
+    assert.equal(MigrationFilePair.compare(highIndexPair, lowIndexPair), 1);
   });
 
   it("can add migration files and make them readable", () => {
@@ -32,11 +32,11 @@ describe("MigrationFilePair", () => {
 
     const upfile = new MockMigrationFile({ direction: "up" });
     pair.add(upfile);
-    assert.equals(pair.up, upfile);
+    assert.equal(pair.up, upfile);
 
     const downfile = upfile.inverse();
     pair.add(downfile);
-    assert.equals(pair.down, downfile);
+    assert.equal(pair.down, downfile);
   });
 
   it("can return an version of itself guaranteed to be complete", () => {
@@ -54,7 +54,7 @@ describe("MigrationFilePair", () => {
     pair.add(upFile);
     pair.add(downFile);
     const complete = pair.complete();
-    assert.equals(complete.up, upFile);
-    assert.equals(complete.down, downFile);
+    assert.equal(complete.up, upFile);
+    assert.equal(complete.down, downFile);
   });
 });

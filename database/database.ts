@@ -13,7 +13,7 @@ const queries = {
         id SERIAL PRIMARY KEY,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         index INTEGER NOT NULL,
-        filename VARCHAR(255) NOT NULL
+        name VARCHAR(255) NOT NULL
       );
 
       CREATE UNIQUE INDEX migrations_index_index ON _migrations (index DESC);
@@ -35,11 +35,12 @@ export class Database {
 
   async initialize(): Promise<void> {
     const migrator = new deps.Migrator([
-      new deps.QueryMigration(
-        1,
-        queries.initialize.migrate,
-        queries.initialize.revert,
-      ),
+      new deps.QueryMigration({
+        index: 0,
+        name: "initialization",
+        migrate: queries.initialize.migrate,
+        revert: queries.initialize.revert,
+      }),
     ]);
     await migrator.migrate(this.client);
   }

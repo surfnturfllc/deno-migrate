@@ -1,7 +1,15 @@
+declare interface Transaction {
+  begin(): Promise<void>;
+  queryArray<T>(query: string): Promise<QueryResult<T>>;
+  commit(): Promise<void>;
+}
+
 declare interface Client {
   connect(): Promise<void>;
   end(): Promise<void>;
   queryObject<T>(query: string): Promise<QueryResult<T>>;
+  queryArray<T>(query: string): Promise<QueryResult<T>>;
+  createTransaction(name: string): Transaction;
 }
 
 declare interface QueryResult<Row> {
@@ -9,6 +17,9 @@ declare interface QueryResult<Row> {
 }
 
 declare interface Migration {
+  get index(): number;
+  get name(): string;
+
   migrate(db: Client): Promise<void>;
   revert(db: Client): Promise<void>;
 }

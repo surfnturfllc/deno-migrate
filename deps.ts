@@ -1,4 +1,5 @@
-import { parseArgs } from "https://deno.land/std@0.207.0/cli/parse_args.ts";
+import * as path from "https://deno.land/std@0.215.0/path/mod.ts";
+import { parseArgs } from "https://deno.land/std@0.215.0/cli/parse_args.ts";
 import * as postgres from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
 
@@ -14,6 +15,7 @@ export const deps = {
   env: {
     get: Deno.env.get,
   },
+  path,
   parseArgs,
   postgres: {
     Client: postgres.Client,

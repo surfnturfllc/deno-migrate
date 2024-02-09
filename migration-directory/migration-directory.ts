@@ -30,7 +30,7 @@ export class MigrationDirectory {
       if (!entry.isFile) continue;
 
       try {
-        const file = new deps.MigrationFile(entry.name);
+        const file = new deps.MigrationFile(this.path, entry.name);
 
         if (!incompletePairs[file.index]) {
           incompletePairs[file.index] = new deps.MigrationFilePair();
@@ -64,11 +64,12 @@ export class MigrationDirectory {
 
     const migrations = [];
     for (const pair of toLoad) {
-      migrations.push(new deps.QueryMigration(
-        pair.up.index,
-        await pair.up.load(),
-        await pair.down.load(),
-      ));
+      migrations.push(new deps.QueryMigration({
+        index: pair.up.index,
+        name: pair.up.name,
+        migrate: await pair.up.load(),
+        revert: await pair.down.load(),
+      }));
     }
 
     return migrations;
