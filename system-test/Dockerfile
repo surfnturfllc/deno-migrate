@@ -19,6 +19,6 @@ ENV PATH="${PATH}:${PWD}/bin"
 
 RUN deno cache ./system-test/deps.ts
 
-COPY ./system-test/schema ./schema
+COPY ./system-test/migrations ./migrations
 
 CMD ["test", "./system-test/system.test.ts", "--allow-run", "--allow-read", "--allow-write", "--allow-net"]

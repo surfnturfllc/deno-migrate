@@ -58,7 +58,7 @@ async function initialize() {
 async function up() {
   const flags = deps.parseArgs(deps.args, {
     boolean: ["help"],
-    string: ["schema"],
+    string: ["path"],
   });
 
   if (flags.help) {
@@ -66,7 +66,7 @@ async function up() {
     return;
   }
 
-  const path = flags.schema ?? "./schema";
+  const path = flags.path ?? "./migrations";
 
   deps.console.log(`Loading database migrations from "${path}"...`);
 

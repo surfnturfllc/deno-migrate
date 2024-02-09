@@ -1,4 +1,4 @@
-import { assert, postgres, test } from "./deps.ts";
+import { assert, copy, postgres, path, test } from "./deps.ts";
 
 
 const { afterEach, beforeEach, describe, it } = test;
@@ -136,6 +136,19 @@ describe("migrate cli", () => {
         const result = await db.queryObject<{ index: number }>(`SELECT index FROM _migrations ORDER BY index DESC LIMIT 1`);
         assert.equal(result.rows[0].index, 3);
       }
+    });
+
+    it("can read migrations from a specific directory if --path is present", async () => {
+      await migrate("initialize");
+
+      const tempDir = path.join(await Deno.makeTempDir(), "migrations");
+
+      await copy("system-test/migrations", tempDir);
+
+      const { code, stderr } = await migrate("up", `--path=${tempDir}`);
+
+      assert.equal(code, 0);
+      assert.equal(stderr, "");
     });
   });
 });

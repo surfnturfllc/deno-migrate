@@ -8,11 +8,18 @@ import { MockMigrationDirectory } from "./migration-directory/migration-director
 import { MockMigrator } from "./migrator/migrator.mock.ts";
 
 
+export class MockTransaction {
+  begin = test.stub().resolves();
+  queryObject = test.stub().resolves();
+  queryArray = test.stub().resolves();
+  commit = test.stub().resolves();
+}
+
 export class MockClient {
   connect = test.stub().resolves();
   queryObject = test.stub().resolves({ rows: [] });
   queryArray = test.stub().resolves({ rows: [] });
-  createTransaction = test.stub();
+  createTransaction = test.stub().callsFake(() => new MockTransaction());
   end = test.stub().resolves();
 }
 

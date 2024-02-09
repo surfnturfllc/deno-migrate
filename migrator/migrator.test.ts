@@ -5,7 +5,7 @@ import { MockMigration } from "../migration/migration.mock.ts";
 import { deps, Migrator } from "./migrator.ts";
 
 
-const { afterEach, describe, it, stub } = test;
+const { afterEach, beforeEach, describe, it, stub } = test;
 
 
 function generateMigrations(count = 10) {
@@ -24,9 +24,13 @@ describe("Migrator", () => {
 });
 
 describe("Migrator.prototype.migrate", () => {
+  let client: Client;
+  let migrations: MockMigration[];
 
-  const client = new mock.postgres.Client();
-  const migrations = generateMigrations();
+  beforeEach(() => {
+    client = new mock.postgres.Client();
+    migrations = generateMigrations();
+  });
 
   afterEach(stubs.restore);
 
@@ -36,6 +40,7 @@ describe("Migrator.prototype.migrate", () => {
     );
 
     const migrator = new Migrator(migrations);
+
     await migrator.migrate(client);
 
     assert.called(deps.RevertableSequence);
