@@ -1,8 +1,6 @@
 export class MigrationFilePair {
   static compare(a: CompleteMigrationFilePair, b: CompleteMigrationFilePair) {
-    if (a.up.index < b.up.index) return -1;
-    if (a.up.index > b.up.index) return 1;
-    return 0;
+    return b.up.index - a.up.index;
   }
 
   private _up?: MigrationFile;

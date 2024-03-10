@@ -15,11 +15,20 @@ export class MockMigrationFile {
   name: string;
   filename: string;
 
-  constructor(config?: MockMigrationFileConfig) {
-    this.index = config?.index ?? faker.random.number({ max: 10000 });
-    this.direction = config?.direction ?? faker.helpers.randomize(["up", "down"]);
-    this.name = config?.name ?? path.parse(faker.system.fileName()).name;
-    this.filename = config?.filename ?? `${this.index}-${this.direction}-${this.name}.sql`;
+  constructor(_path?: string, _filename?: string) {
+    this.index = 0;
+    this.direction = "";
+    this.name = "";
+    this.filename = "";
+  }
+
+  static Fake(config?: MockMigrationFileConfig): MockMigrationFile {
+    const fake = new MockMigrationFile();
+    fake.index = config?.index ?? faker.random.number({ max: 10000 });
+    fake.direction = config?.direction ?? faker.helpers.randomize(["up", "down"]);
+    fake.name = config?.name ?? path.parse(faker.system.fileName()).name;
+    fake.filename = config?.filename ?? `${fake.index}-${fake.direction}-${fake.name}.sql`;
+    return fake;
   }
 
   load = test.stub();

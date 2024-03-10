@@ -1,4 +1,4 @@
-import { assert, faker, path, stubs, test } from "../test.deps.ts"
+import { assert, faker, path, test } from "../test.deps.ts"
 
 import { deps, MigrationDirectory } from "./migration-directory.ts";
 
@@ -11,24 +11,49 @@ const { afterEach, beforeEach, describe, it, stub } = test;
 
 describe("MigrationDirectory", () => {
   const path = faker.system.directoryPath();
+  const upMigrationFiles = generateMigrationFiles(10);
+  const downMigrationFiles = upMigrationFiles.map((file) => file.inverse());
+  const migrationFiles = upMigrationFiles.concat(downMigrationFiles).sort((a, b) => a.index - b.index);
+  const dirEntries = migrationFiles.map((e) => ({ isFile: true, name: e.filename }));
+  const migrationFilePairs = upMigrationFiles.map(
+    (up, index) => new MockMigrationFilePair(up, downMigrationFiles[index]),
+  );
+
+  let stubs = {
+    console: {
+      error: stub(),
+    },
+    fs: {
+      readDir: stub(),
+      readTextFile: stub(),
+    },
+    MigrationFile: stub(),
+    MigrationFilePair: stub(),
+  };
 
   beforeEach(() => {
-    stub(deps.console, "error");
-    stub(deps.fs, "readTextFile").returns(faker.lorem.paragraph());
+    stubs = {
+      console: {
+        error: stub(deps.console, "error"),
+      },
+      fs: {
+        readDir: stub(deps.fs, "readDir").returns(dirEntries),
+        readTextFile: stub(deps.fs, "readTextFile").returns(faker.lorem.paragraph()),
+      },
+      MigrationFile: stub(deps, "MigrationFile").callsFake(stubGeneratorFromArray(migrationFiles)),
+      MigrationFilePair: stub(deps, "MigrationFilePair").callsFake(stubGeneratorFromArray(migrationFilePairs)),
+    };
   });
 
-  afterEach(stubs.restore);
+  afterEach(test.stubs.restore);
 
   it("can be instantiated", () => {
-    stub(deps.fs, "readDir").returns(generateFakeReadDir());
-
     new MigrationDirectory(path);
+    assert.pass();
   });
 
   describe("MigrationDirectory.prototype.scan", () => {
     it("can scan a directory for migrations", async () => {
-      stub(deps.fs, "readDir").returns(generateFakeReadDir());
-
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
@@ -37,8 +62,8 @@ describe("MigrationDirectory", () => {
     });
 
     it("ignores non-files", async () => {
-      stub(deps.fs, "readDir").returns(
-        generateFakeReadDir().concat({ isFile: false, name: "foobar" }),
+      stubs.fs.readDir.returns(
+        generateFakeReadDir({ isFile: false, name: "foobar" }),
       );
 
       const directory = new MigrationDirectory(path);
@@ -47,49 +72,40 @@ describe("MigrationDirectory", () => {
       assert.notCalled(deps.console.error);
     });
 
-    it("prints an error message if it encounters an unparsable file name", async () => {
-      stub(deps.fs, "readDir").returns([{ isFile: true, name: "invalid filename" }]);
+    it("throws an error if it encounters an up migration without a down", async () => {
+      stubs.fs.readDir.returns([{ isFile: true, name: "01-up-foobar.sql" }]);
+      stubs.MigrationFilePair.restore();
 
+      const directory = new MigrationDirectory(path);
+
+      await assert.rejects(() => directory.scan());
+    });
+
+    it("throws an error if it encounters a down migration without an up", async () => {
+      stubs.fs.readDir.returns([{ isFile: true, name: "01-down-foobar.sql" }]);
+      stubs.MigrationFilePair.restore();
+
+      const directory = new MigrationDirectory(path);
+
+      await assert.rejects(async () => await directory.scan());
+    });
+  });
+
+  describe("MigrationDirectory.prototype.latestVersion", () => {
+    it("after scanning, it returns the version of the project's latest migration", async () => {
       const directory = new MigrationDirectory(path);
       await directory.scan();
 
-      assert.called(deps.console.error);
-    });
-
-    it("throws an error if it encounters an up migration without a down", () => {
-      stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-up-foobar.sql" }]);
-
-      const directory = new MigrationDirectory(path);
-
-      assert.rejects(() => directory.scan());
-    });
-
-    it("throws an error if it encounters a down migration without an up", () => {
-      stub(deps.fs, "readDir").returns([{ isFile: true, name: "01-down-foobar.sql" }]);
-
-      const directory = new MigrationDirectory(path);
-
-      assert.rejects(() => directory.scan());
+      assert.equal(directory.latestVersion, upMigrationFiles[upMigrationFiles.length - 1].index);
     });
   });
 
   describe("MigrationDirectory.prototype.load", () => {
     it("reads migration file content and returns QueryMigrations", async () => {
-      const upMigrationFiles = generateMigrationFiles(10);
-      const downMigrationFiles = upMigrationFiles.map((file) => file.inverse());
-      const migrationFiles = upMigrationFiles.concat(downMigrationFiles);
-      const dirEntries = migrationFiles.map((e) => ({ isFile: true, name: e.filename }));
-      const migrationFilePairs = upMigrationFiles.map(
-        (up, index) => new MockMigrationFilePair(up, downMigrationFiles[index]),
-      );
-
-      stub(deps.fs, "readDir").returns(dirEntries);
-      stub(deps, "MigrationFile").callsFake(stubGeneratorFromArray(migrationFiles));
-      stub(deps, "MigrationFilePair").callsFake(stubGeneratorFromArray(migrationFilePairs))
-
       const directory = new MigrationDirectory(path);
       await directory.scan();
       await directory.load();
+
 
       for (const migrationFile of migrationFiles) {
         assert.called(migrationFile.load);
@@ -109,9 +125,9 @@ function stubGeneratorFromArray<T>(a: Array<T>) {
 function generateMigrationFiles(count: number) {
   const migrationFiles = [];
   for (let index = 0; index < count; index++) {
-    migrationFiles.push(new MockMigrationFile());
+    migrationFiles.push(MockMigrationFile.Fake({ direction: "up" }));
   }
-  return migrationFiles;
+  return migrationFiles.sort((a, b) => a.index - b.index);
 }
 
 
@@ -124,13 +140,16 @@ function generateFakeMigrationDirEntries(index: number) {
 }
 
 
-function generateFakeReadDir() {
-  const entries = [];
+interface DirEntry { isFile: boolean; name: string }
+function* generateFakeReadDir(...entries: DirEntry[]) {
   const count = 5;
-  for (let index = 0; index < count; index++) {
+  let index;
+  for (index = 0; index < count; index++) {
     const { up, down } = generateFakeMigrationDirEntries(index);
-    entries.push(up);
-    entries.push(down);
+    yield up;
+    yield down;
   }
-  return entries;
+  for (const entry of entries) {
+    yield entry;
+  }
 }

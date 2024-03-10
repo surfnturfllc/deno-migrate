@@ -55,6 +55,23 @@ async function initialize() {
 }
 
 
+async function version() {
+  const flags = deps.parseArgs(deps.args, {
+    string: ["path"],
+  });
+
+  const { client } = await connect();
+  const db = new deps.Database(client);
+  const dbVersion = await db.fetchVersion();
+  deps.console.log(`Database version: ${dbVersion}`);
+
+  const path = flags.path ?? "./migrations";
+  const directory = new deps.MigrationDirectory(path);
+  await directory.scan();
+  deps.console.log(`Latest version: ${directory.latestVersion}`);
+}
+
+
 async function up() {
   const flags = deps.parseArgs(deps.args, {
     boolean: ["help"],
@@ -90,6 +107,9 @@ export async function command() {
   switch (deps.args[0]) {
     case "initialize":
       await initialize();
+      break;
+    case "version":
+      await version();
       break;
     case "up":
       await up();

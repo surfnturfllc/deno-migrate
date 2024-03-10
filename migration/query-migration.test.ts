@@ -1,4 +1,4 @@
-import { assert, stubs, test } from "../test.deps.ts";
+import { assert, test } from "../test.deps.ts";
 import mock from "../deps.mock.ts";
 
 import { deps } from "../deps.ts";
@@ -23,7 +23,7 @@ describe("QueryMigration", () => {
     client = new mock.postgres.Client();
   });
 
-  afterEach(stubs.restore);
+  afterEach(test.stubs.restore);
 
   it("can be instantiated", () => {
     new QueryMigration(fakeQueryMigration);

@@ -76,6 +76,16 @@ describe("migrate cli", () => {
     });
   });
 
+  describe("migrate version", () => {
+    it("prints the current version of the managed database", async () => {
+      const { code, stdout, stderr } = await migrate("version");
+
+      assert.equal(code, 0);
+      assert.equal(stderr, "");
+      assert.match(stdout, /\b0\b/);
+    });
+  });
+
   describe("migrate initialize", () => {
     it("displays usage information when --help flag present", async () => {
       const { code, stderr, stdout } = await migrate("initialize", "--help");

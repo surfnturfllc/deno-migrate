@@ -16,10 +16,12 @@ export const deps = {
 export class MigrationDirectory {
   private path: string;
   private migrationPairs: CompleteMigrationFilePair[];
+  private _latestVersion: number;
 
   constructor(path: string) {
     this.path = path;
     this.migrationPairs = [];
+    this._latestVersion = 0;
   }
 
   async scan(): Promise<void> {
@@ -29,18 +31,17 @@ export class MigrationDirectory {
     for await (const entry of entries) {
       if (!entry.isFile) continue;
 
-      try {
-        const file = new deps.MigrationFile(this.path, entry.name);
+      const file = new deps.MigrationFile(this.path, entry.name);
 
-        if (!incompletePairs[file.index]) {
-          incompletePairs[file.index] = new deps.MigrationFilePair();
-        }
-
-        incompletePairs[file.index].add(file);
-      } catch (error) {
-        deps.console.error(error);
-        continue;
+      if (!incompletePairs[file.index]) {
+        incompletePairs[file.index] = new deps.MigrationFilePair();
       }
+
+      if (file.index > this._latestVersion) {
+        this._latestVersion = file.index;
+      }
+
+      incompletePairs[file.index].add(file);
     }
 
     this.migrationPairs = Object.values(incompletePairs).map(
@@ -52,7 +53,7 @@ export class MigrationDirectory {
 
   async load(from = 0, to?: number): Promise<Migration[]> {
     if (to === undefined) {
-      to = this.migrationPairs[this.migrationPairs.length - 1].up.index;
+      to = this.migrationPairs[0].up.index;
     }
 
     const toLoad = [];
@@ -73,5 +74,9 @@ export class MigrationDirectory {
     }
 
     return migrations;
+  }
+
+  get latestVersion(): number {
+    return this._latestVersion;
   }
 }

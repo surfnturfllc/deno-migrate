@@ -16,21 +16,21 @@ describe("MigrationFilePair", () => {
 
   it("can be compared with other instances of itself", () => {
     const lowIndexPair = new MockMigrationFilePair(
-      new MockMigrationFile({ index: 3, direction: "up" }),
+      MockMigrationFile.Fake({ index: 3, direction: "up" }),
     );
     const highIndexPair = new MockMigrationFilePair(
-      new MockMigrationFile({ index: 10, direction: "up" }),
+      MockMigrationFile.Fake({ index: 10, direction: "up" }),
     );
     
-    assert.equal(MigrationFilePair.compare(lowIndexPair, highIndexPair), -1);
+    assert.lessThan(MigrationFilePair.compare(lowIndexPair, highIndexPair), 0)
     assert.equal(MigrationFilePair.compare(lowIndexPair, lowIndexPair), 0);
-    assert.equal(MigrationFilePair.compare(highIndexPair, lowIndexPair), 1);
+    assert.greaterThan(MigrationFilePair.compare(highIndexPair, lowIndexPair), 0);
   });
 
   it("can add migration files and make them readable", () => {
     const pair = new MigrationFilePair();
 
-    const upfile = new MockMigrationFile({ direction: "up" });
+    const upfile = MockMigrationFile.Fake({ direction: "up" });
     pair.add(upfile);
     assert.equal(pair.up, upfile);
 
@@ -41,7 +41,7 @@ describe("MigrationFilePair", () => {
 
   it("can return an version of itself guaranteed to be complete", () => {
     const upPair = new MigrationFilePair();
-    const upFile = new MockMigrationFile({ direction: "up" });
+    const upFile = MockMigrationFile.Fake({ direction: "up" });
     upPair.add(upFile);
     assert.throws(() => upPair.complete());
 

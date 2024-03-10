@@ -1,4 +1,4 @@
-import { assert, stubs, test } from "./test.deps.ts";
+import { assert, test } from "./test.deps.ts";
 import mock from "./deps.mock.ts";
 
 import { command, deps } from "./mod.ts";
@@ -50,7 +50,7 @@ describe("migrate command", () => {
     stub(deps, "Database").returns(database);
   });
 
-  afterEach(stubs.restore);
+  afterEach(test.stubs.restore);
 
   describe("migrate help", () => {
     it("displays usage instructions", args(["help"], async () => {
@@ -105,9 +105,16 @@ describe("migrate command", () => {
     }));
   });
 
+  describe("migrate version", () => {
+    it("queries and prints current version of managed database", args(["version"], async () => {
+      await command();
+      assert.called(database.fetchVersion);
+      assert.called(deps.console.log);
+    }));
+  });
 
   describe("migrate up", () => {
-    it("displays usage information if --help flag is present", args(["up", "--help"], async () => {
+    it("prints usage information if --help flag is present", args(["up", "--help"], async () => {
       await command();
 
       assert.called(deps.console.log);

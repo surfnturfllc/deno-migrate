@@ -33,7 +33,7 @@ describe("MigrationFile", () => {
     const content = faker.lorem.paragraph();
     test.stub(deps.fs, "readTextFile").resolves(content);
 
-    const mock = new MockMigrationFile();
+    const mock = MockMigrationFile.Fake();
     const file = new MigrationFile("./migrations", mock.filename);
 
     assert.equal(await file.load(), content);

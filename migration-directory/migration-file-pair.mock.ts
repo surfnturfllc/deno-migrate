@@ -1,5 +1,6 @@
 import { test } from "../test.deps.ts";
 
+import { MigrationFilePair } from "./migration-file-pair.ts";
 import { MockMigrationFile } from "./migration-file.mock.ts";
 
 
@@ -9,7 +10,7 @@ export class MockMigrationFilePair {
   _up: MigrationFile;
   _down: MigrationFile;
 
-  constructor(up?: MockMigrationFile, down?: MockMigrationFile) {
+  constructor(up?: MigrationFile, down?: MigrationFile) {
     this._up = up ?? new MockMigrationFile();
     this._down = down ?? MockMigrationFile.prototype.inverse.apply(this.up)
     this.complete.returns({ up, down });

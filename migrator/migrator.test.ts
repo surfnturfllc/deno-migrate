@@ -1,4 +1,4 @@
-import { assert, test, stubs } from "../test.deps.ts";
+import { assert, test} from "../test.deps.ts";
 import mock from "../deps.mock.ts";
 import { MockMigration } from "../migration/migration.mock.ts";
 
@@ -32,7 +32,7 @@ describe("Migrator.prototype.migrate", () => {
     migrations = generateMigrations();
   });
 
-  afterEach(stubs.restore);
+  afterEach(test.stubs.restore);
 
   it("processes a sequence of migrations", async () => {
     stub(deps, "RevertableSequence").callsFake(
