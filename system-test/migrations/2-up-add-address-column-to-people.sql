@@ -1,1 +1,1 @@
-ALTER TABLE people ADD COLUMN address VARCHAR(255);
+ALTER TABLE "people" ADD COLUMN "address" VARCHAR(255);

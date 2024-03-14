@@ -3,6 +3,8 @@ import { MigrationDirectory } from "./migration-directory/migration-directory.ts
 import { Migrator } from "./migrator/migrator.ts";
 
 import { deps as external } from "./deps.ts";
+import { ConnectionParamsError } from "https://deno.land/x/postgres@v0.17.0/client/error.ts";
+import { PostgresError } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
 
 export const deps =  {
@@ -62,12 +64,35 @@ async function version() {
 
   const { client } = await connect();
   const db = new deps.Database(client);
-  const dbVersion = await db.fetchVersion();
-  deps.console.log(`Database version: ${dbVersion}`);
+  try {
+    const dbVersion = await db.fetchVersion();
+    deps.console.log(`Database version: ${dbVersion}`);
+  } catch (e) {
+    if (e instanceof ConnectionParamsError) {
+      deps.console.error(`Error connecting to database: "${e.message}".`);
+      deps.exit(1);
+    } else if (e instanceof PostgresError && e.fields.code === "28P01") {
+      deps.console.error(`Authentication failed.`);
+      deps.exit(1);
+    } else if (e instanceof PostgresError && e.fields.code === "42P01") {
+      deps.console.error(`Database has not been initialized. Please run "migrate initialize".`);
+      deps.exit(1);
+    } else {
+      throw e;
+    }
+  }
 
   const path = flags.path ?? "./migrations";
   const directory = new deps.MigrationDirectory(path);
-  await directory.scan();
+  try {
+    await directory.scan();
+  } catch (e) {
+    if (e.name === "NotFound") {
+      deps.console.error(`No "migrations" directory found.`);
+      deps.exit(1);
+    }
+  }
+
   deps.console.log(`Latest version: ${directory.latestVersion}`);
 }
 

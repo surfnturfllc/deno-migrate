@@ -2,6 +2,8 @@ import { assert, test } from "./test.deps.ts";
 import mock from "./deps.mock.ts";
 
 import { command, deps } from "./mod.ts";
+import { ConnectionParamsError } from "https://deno.land/x/postgres@v0.17.0/client/error.ts";
+import { PostgresError } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
 const { beforeEach, afterEach, describe, it, spy, stub } = test;
 
@@ -34,7 +36,9 @@ describe("migrate command", () => {
   let ClientSpy = spy();
   
   beforeEach(() => {
+    stub(deps.console, "error").returns(undefined);
     stub(deps.console, "log").returns(undefined);
+    stub(deps, "exit");
     stub(deps.env, "get").callsFake((key = "default") => {
       switch (key) {
         case "MIGRATE_DATABASE_PASSWORD":
@@ -111,6 +115,70 @@ describe("migrate command", () => {
       assert.called(database.fetchVersion);
       assert.called(deps.console.log);
     }));
+
+    it("prints an message and exits when it encounters a ConnectionParamsError", args(["version"], async () => {
+      try {
+        database.fetchVersion.rejects(new ConnectionParamsError("MOCK ERROR"));
+
+        await command();
+
+        assert.called(database.fetchVersion);
+        assert.called(deps.console.error);
+        assert.called(deps.exit);
+      } finally {
+        database.fetchVersion.reset();
+      }
+    }));
+
+    it("prints an message and exits when authentication to PostgreSQL fails", args(["version"], async () => {
+      try {
+        database.fetchVersion.rejects(new PostgresError({ code: "28P01", severity: "", message: "" }));
+
+        await command();
+
+        assert.called(database.fetchVersion);
+        assert.called(deps.console.error);
+        assert.called(deps.exit);
+      } finally {
+        database.fetchVersion.reset();
+      }
+    }));
+
+    it("prints an message and exits when run against a database without a 'migrations' table", args(["version"], async () => {
+      try {
+        database.fetchVersion.rejects(new PostgresError({ code: "42P01", severity: "", message: "" }));
+
+        await command();
+
+        assert.called(deps.console.error);
+        assert.called(deps.exit);
+      } finally {
+        database.fetchVersion.reset();
+      }
+    }));
+
+    it("rethrows error when it encounters an unknown error from PostgreSQL", args(["version"], async () => {
+      try {
+        database.fetchVersion.rejects(new Error());
+        await assert.rejects(command);
+      } finally {
+        database.fetchVersion.reset();
+      }
+    }));
+
+    it("prints an message and exits when unable to find a directory containing migrations", args(["version"], async () => {
+      try {
+        directory.scan.rejects({...new Error(), name: "NotFound"});
+
+        await command();
+
+        assert.called(deps.console.error);
+        assert.called(deps.exit);
+      } finally {
+        directory.scan.reset();
+      }
+    }));
+
   });
 
   describe("migrate up", () => {

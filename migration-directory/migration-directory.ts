@@ -53,7 +53,7 @@ export class MigrationDirectory {
 
   async load(from = 0, to?: number): Promise<Migration[]> {
     if (to === undefined) {
-      to = this.migrationPairs[0].up.index;
+      to = this.migrationPairs[this.migrationPairs.length - 1].up.index;
     }
 
     const toLoad = [];

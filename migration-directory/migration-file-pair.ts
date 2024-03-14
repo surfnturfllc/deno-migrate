@@ -1,6 +1,6 @@
 export class MigrationFilePair {
   static compare(a: CompleteMigrationFilePair, b: CompleteMigrationFilePair) {
-    return b.up.index - a.up.index;
+    return a.up.index - b.up.index;
   }
 
   private _up?: MigrationFile;

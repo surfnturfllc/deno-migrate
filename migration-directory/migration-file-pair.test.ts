@@ -22,9 +22,9 @@ describe("MigrationFilePair", () => {
       MockMigrationFile.Fake({ index: 10, direction: "up" }),
     );
     
-    assert.lessThan(MigrationFilePair.compare(lowIndexPair, highIndexPair), 0)
+    assert.lessThan(MigrationFilePair.compare(highIndexPair, lowIndexPair), 0)
     assert.equal(MigrationFilePair.compare(lowIndexPair, lowIndexPair), 0);
-    assert.greaterThan(MigrationFilePair.compare(highIndexPair, lowIndexPair), 0);
+    assert.greaterThan(MigrationFilePair.compare(lowIndexPair, highIndexPair), 0);
   });
 
   it("can add migration files and make them readable", () => {

@@ -28,4 +28,5 @@ export const deps = {
     readDir: Deno.readDir,
     readTextFile: Deno.readTextFile,
   },
+  exit: Deno.exit,
 };

@@ -76,16 +76,6 @@ describe("migrate cli", () => {
     });
   });
 
-  describe("migrate version", () => {
-    it("prints the current version of the managed database", async () => {
-      const { code, stdout, stderr } = await migrate("version");
-
-      assert.equal(code, 0);
-      assert.equal(stderr, "");
-      assert.match(stdout, /\b0\b/);
-    });
-  });
-
   describe("migrate initialize", () => {
     it("displays usage information when --help flag present", async () => {
       const { code, stderr, stdout } = await migrate("initialize", "--help");
@@ -106,6 +96,28 @@ describe("migrate cli", () => {
       assert.equal(rows.length, 1);
       const current = rows[0];
       assert.equal(current.index, 0);
+    });
+  });
+
+  describe("migrate version", () => {
+    it("prints an error message if run against an uninitialized database", async () => {
+      const { code, stderr } = await migrate("version");
+
+      assert.equal(code, 1);
+      assert.equal(stderr, `Database has not been initialized. Please run "migrate initialize".\n`);
+    });
+
+    it("prints the current version of the managed database", async () => {
+      {
+        const { code } = await migrate("initialize");
+        assert.equal(code, 0);
+      }
+
+      const { code, stdout, stderr } = await migrate("version");
+
+      assert.equal(code, 0);
+      assert.equal(stderr, "");
+      assert.match(stdout, /\b0\b/);
     });
   });
 

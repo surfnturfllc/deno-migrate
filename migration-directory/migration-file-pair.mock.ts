@@ -1,6 +1,5 @@
 import { test } from "../test.deps.ts";
 
-import { MigrationFilePair } from "./migration-file-pair.ts";
 import { MockMigrationFile } from "./migration-file.mock.ts";
 
 
