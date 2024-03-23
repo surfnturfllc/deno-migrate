@@ -7,6 +7,9 @@ bin/migrate:
 	mkdir -p bin
 	deno compile ${PERMISSIONS} --output "bin/migrate" cli.ts
 
+setup:
+	git config core.hooksPath .githooks
+
 unit-test:
 	deno test --ignore=system-test
 
