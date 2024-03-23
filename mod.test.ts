@@ -110,6 +110,12 @@ describe("migrate command", () => {
   });
 
   describe("migrate version", () => {
+    it("prints usage information if --help flag is present", args(["version", "--help"], async () => {
+      await command();
+
+      assert.called(deps.console.log);
+    }));
+
     it("queries and prints current version of managed database", args(["version"], async () => {
       await command();
       assert.called(database.fetchVersion);
@@ -178,7 +184,6 @@ describe("migrate command", () => {
         directory.scan.reset();
       }
     }));
-
   });
 
   describe("migrate up", () => {

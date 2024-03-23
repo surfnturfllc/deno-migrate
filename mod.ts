@@ -3,11 +3,9 @@ import { MigrationDirectory } from "./migration-directory/migration-directory.ts
 import { Migrator } from "./migrator/migrator.ts";
 
 import { deps as external } from "./deps.ts";
-import { ConnectionParamsError } from "https://deno.land/x/postgres@v0.17.0/client/error.ts";
-import { PostgresError } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
 
-export const deps =  {
+export const deps = {
   ...external,
   MigrationDirectory,
   Migrator,
@@ -16,7 +14,39 @@ export const deps =  {
 
 
 export function help() {
-  deps.console.log("migrate your life");
+  deps.console.log(`
+Usage:  migrate COMMAND [OPTIONS]
+
+Manage your database schema with migrate.
+
+Environment:
+  Migrate's database connection must be configured using the following environment variables:
+
+  MIGRATE_DATABASE
+  The name of the database (Default: postgres)
+
+  MIGRATE_DATABASE_HOST
+  The network host address of the database server (Default: localhost)
+
+  MIGRATE_DATABASE_PORT
+  The port the database is listening for connections on (Default: 5432)
+
+  MIGRATE_DATABASE_USER
+  The name of the database user to connect as (Default: postgres)
+
+  MIGRATE_DATABASE_PASSWORD
+  The password of the database user to authenticate with. If this is not set the user will be prompted for a password on the command line
+
+
+Subcommands:
+
+  help        You're here! Display basic usage information
+  initialize  Prepares the configured database for management
+  version     Display version information about the current configured database and environment
+  up          Run all migrations more recent than the database's version
+
+Run "migrate COMMAND --help" for more information on a command.
+`);
 }
 
 
@@ -45,7 +75,32 @@ async function initialize() {
   });
 
   if (flags.help) {
-    deps.console.log("migrate your aesthetic");
+    deps.console.log(`
+Usage:  migrate initialize [OPTIONS]
+
+Initialize a database for management by migrate. This creates a table in the configured database called "migrations". This table will have a new entry inserted every time migrate updates the database. These entries are used to determine the database's current version as well as providing an audit-log of migrations.
+
+Options:
+  --help    Display usage information
+
+Environment:
+  Migrate's database connection must be configured using the following environment variables:
+
+  MIGRATE_DATABASE
+  The name of the database (Default: postgres)
+
+  MIGRATE_DATABASE_HOST
+  The network host address of the database server (Default: localhost)
+
+  MIGRATE_DATABASE_PORT
+  The port the database is listening for connections on (Default: 5432)
+
+  MIGRATE_DATABASE_USER
+  The name of the database user to connect as (Default: postgres)
+
+  MIGRATE_DATABASE_PASSWORD
+  The password of the database user to authenticate with. If this is not set, the user will be prompted for a password on the command line
+`);
     return;
   }
 
@@ -59,8 +114,40 @@ async function initialize() {
 
 async function version() {
   const flags = deps.parseArgs(deps.args, {
+    boolean: ["help"],
     string: ["path"],
   });
+
+  if (flags.help) {
+    deps.console.log(`
+Usage:  migrate version [OPTIONS]
+
+Display the configured database's current version as well as the current version of the local project (if available)
+
+Options:
+  --help          Display usage information
+  --path=<PATH>   Specify a file system path containing migration configuration
+
+Environment:
+  Migrate's database connection must be configured using the following environment variables:
+
+  MIGRATE_DATABASE
+  The name of the database (Default: postgres)
+
+  MIGRATE_DATABASE_HOST
+  The network host address of the database server (Default: localhost)
+
+  MIGRATE_DATABASE_PORT
+  The port the database is listening for connections on (Default: 5432)
+
+  MIGRATE_DATABASE_USER
+  The name of the database user to connect as (Default: postgres)
+
+  MIGRATE_DATABASE_PASSWORD
+  The password of the database user to authenticate with. If this is not set, the user will be prompted for a password on the command line
+`);
+    return;
+  }
 
   const { client } = await connect();
   const db = new deps.Database(client);
@@ -68,13 +155,13 @@ async function version() {
     const dbVersion = await db.fetchVersion();
     deps.console.log(`Database version: ${dbVersion}`);
   } catch (e) {
-    if (e instanceof ConnectionParamsError) {
+    if (e instanceof deps.postgres.ConnectionParamsError) {
       deps.console.error(`Error connecting to database: "${e.message}".`);
       deps.exit(1);
-    } else if (e instanceof PostgresError && e.fields.code === "28P01") {
+    } else if (e instanceof deps.postgres.PostgresError && e.fields.code === "28P01") {
       deps.console.error(`Authentication failed.`);
       deps.exit(1);
-    } else if (e instanceof PostgresError && e.fields.code === "42P01") {
+    } else if (e instanceof deps.postgres.PostgresError && e.fields.code === "42P01") {
       deps.console.error(`Database has not been initialized. Please run "migrate initialize".`);
       deps.exit(1);
     } else {
@@ -82,18 +169,17 @@ async function version() {
     }
   }
 
-  const path = flags.path ?? "./migrations";
-  const directory = new deps.MigrationDirectory(path);
   try {
+    const path = flags.path ?? "./migrations";
+    const directory = new deps.MigrationDirectory(path);
     await directory.scan();
+  deps.console.log(`Latest version: ${directory.latestVersion}`);
   } catch (e) {
     if (e.name === "NotFound") {
       deps.console.error(`No "migrations" directory found.`);
       deps.exit(1);
     }
   }
-
-  deps.console.log(`Latest version: ${directory.latestVersion}`);
 }
 
 
@@ -104,9 +190,36 @@ async function up() {
   });
 
   if (flags.help) {
-    deps.console.log("migrate your aesthetic");
+    deps.console.log(`
+Usage:  migrate up [OPTIONS]
+
+Sequentially run all migrations that are newer than the current configured database's version.
+
+Options:
+  --help          Display usage information
+  --path=<PATH>   Specify a file system path containing migration configuration
+
+Environment:
+  Migrate's database connection must be configured using the following environment variables:
+
+  MIGRATE_DATABASE
+  The name of the database (Default: postgres)
+
+  MIGRATE_DATABASE_HOST
+  The network host address of the database server (Default: localhost)
+
+  MIGRATE_DATABASE_PORT
+  The port the database is listening for connections on (Default: 5432)
+
+  MIGRATE_DATABASE_USER
+  The name of the database user to connect as (Default: postgres)
+
+  MIGRATE_DATABASE_PASSWORD
+  The password of the database user to authenticate with. If this is not set, the user will be prompted for a password on the command line
+`);
     return;
   }
+
 
   const path = flags.path ?? "./migrations";
 
@@ -140,7 +253,9 @@ export async function command() {
       await up();
       break;
     case "help":
-    default:
       help();
+    default:
+      deps.console.log("migrate v0");
+      deps.console.log(`run "migrate help" for usage information`);
   }
 }
