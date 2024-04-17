@@ -1,7 +1,7 @@
 import { assert, test } from "./test.deps.ts";
 import mock from "./deps.mock.ts";
 
-import { command, deps } from "./mod.ts";
+import { command, deps } from "./command.ts";
 import { ConnectionParamsError } from "https://deno.land/x/postgres@v0.17.0/client/error.ts";
 import { PostgresError } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
@@ -55,6 +55,14 @@ describe("migrate command", () => {
   });
 
   afterEach(test.stubs.restore);
+
+  describe("migrate", () => {
+    it("displays usage instructions", args([], async () => {
+      await command();
+      assert.called(deps.console.log);
+    }));
+  });
+
 
   describe("migrate help", () => {
     it("displays usage instructions", args(["help"], async () => {

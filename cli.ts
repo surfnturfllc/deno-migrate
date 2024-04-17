@@ -1,4 +1,4 @@
-import { command } from "./mod.ts";
+import { command } from "./command.ts";
 
 if (import.meta.main) {
   try {
