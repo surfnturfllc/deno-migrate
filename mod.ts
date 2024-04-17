@@ -54,3 +54,5 @@ export const api = {
     await migrator.migrate(client);
   },
 };
+
+export default api;
